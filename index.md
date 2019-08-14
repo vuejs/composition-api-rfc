@@ -676,10 +676,10 @@ export default {
     const count = ref(0)
 
     function increment() {
-      count.ref++
+      count.value++
     }
 
-    watch(() => console.log(count.ref))
+    watch(() => console.log(count.value))
 
     onMounted(() => console.log('mounted!'))
 
