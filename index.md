@@ -53,7 +53,7 @@ We all love how Vue is very easy to pick up and makes building small to medium s
 
 1. The code of complex components become harder to reason about as features grow over time. This happens particularly when developers are reading code they did not write themselves. The root cause is that Vue's existing API forces code organization by options, but in some cases it makes more sense to organize code by logical concerns.
 
-2. Lack of a clean and cost-free mechanism for extracting and reusing logic between multiple components. We discuss some of the existing patterns and their drawbacks in [Prior Art in Logic Reuse](#prior-art-in-logic-reuse), but the high-level idea is that they either make code harder to maintain over time or introduce unnecessary performance cost.
+2. Lack of a clean and cost-free mechanism for extracting and reusing logic between multiple components. (More details in [Logic Extraction and Reuse](#logic-extraction-and-reuse))
 
 The APIs proposed in this RFC provide the users with more flexibility when organizing component code. Instead of being forced to always organize code by options, code can now be organized as functions each dealing with a specific feature. The APIs also make it more straightforward to extract and reuse logic between components, or even outside components. We will show how these goals are achieved in the [Detailed Design](#detailed-design) section.
 
@@ -491,7 +491,7 @@ export default {
 }
 ```
 
-This is code that we didn't have to write when when using the options API, but it also contains information that cannot be expressed with the options API. **The `setup` function almost reads like a verbal description of what the component is trying to do**. You can also clearly see the dependency flow between the composition functions based on the arguments being passed around. Finally, the return statement serves as the single place to check what is exposed to the template.
+Granted, this is code that we didn't have to write when using the options API. But note how the `setup` function almost reads like a verbal description of what the component is trying to do - this is information that was totally missing in the options-based version. You can also clearly see the dependency flow between the composition functions based on the arguments being passed around. Finally, the return statement serves as the single place to check what is exposed to the template.
 
 Given the same functionality, a component defined via options and a component defined via composition functions manifest two different ways of expressing the same underlying logic. Options-based API forces us to organize code based on *option types*, while the Composition API enables us to organize code based on *logical concerns*.
 
@@ -601,11 +601,17 @@ We agree with that to a certain extent. However, we believe that:
 
 Some users used Angular 1 controllers as examples of how the design could lead to poorly written code. The biggest difference between the Composition API and Angular 1 controllers is that it doesn't rely on a shared scope context. This makes it significantly easier to split out logic into separate functions, which is the core mechanism of JavaScript code organization.
 
-Any JavaScript program starts with an entry file (think of it as the `setup()` for a program). We organize the program by splitting it into functions and modules based on logical concerns. The Composition API enables us to do the same for Vue component code. In other words, skills in writing well-organized JavaScript translates directly into skills of writing well-organized Vue code when using the Composition API.
+Any JavaScript program starts with an entry file (think of it as the `setup()` for a program). We organize the program by splitting it into functions and modules based on logical concerns. **The Composition API enables us to do the same for Vue component code.** In other words, skills in writing well-organized JavaScript code translates directly into skills of writing well-organized Vue code when using the Composition API.
 
 ## Adoption strategy
 
-TODO
+The Composition API is purely additive and does not affect / deprecate any existing 2.x APIs. It has been made available as a 2.x plugin via the [`vue-function-api` library](https://github.com/vuejs/vue-function-api/). Note that the library is still reflecting a previous version of this RFC - we are working on updating it to match the latest API specs. Once that is done, we would like more users to make use of the plugin in real world scenarios and provide more feedback.
+
+We intend to ship the API as built-in in 3.0. It will be usable alongside existing 2.x options.
+
+For users who opt to use the Composition API exclusively in an app, it is possible to provide a compile-time flag to drop code only used for 2.x options and reduce the library size. However, this is completely optional.
+
+The API will be positioned as an advanced feature, since the problems it aims to address appear primarily in large scale applications. We do not intend to overhaul the documentation to use it as the default. Instead, it will have its own dedicated section in the docs.
 
 ## Appendix
 

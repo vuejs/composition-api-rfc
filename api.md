@@ -5,10 +5,6 @@ sidebarDepth: 2
 
 # API Reference
 
-::: tip
-This section is primarily for implementors and library authors. It goes into a lot of technical details. Use it as a reference instead of a guide.
-:::
-
 ## `setup`
 
 The `setup` function is a new component option. It serves as the entry point for using the Composition API inside components.
@@ -258,7 +254,11 @@ console.log(count.value) // 1
 
 ## `isRef`
 
+TODO
+
 ## `toRefs`
+
+TODO
 
 ## `computed`
 
@@ -335,7 +335,11 @@ console.log(count.value) // 0
 
 - **Invocation Timing When Used in Component**
 
+    TODO
+
 - **Debugging**
+
+    TODO
 
 - **Typing**
 
@@ -371,7 +375,11 @@ console.log(count.value) // 0
 
 ## Lifecycle
 
+TODO
+
 ## `provide` & `inject`
+
+TODO
 
 - **Typing**
 
@@ -408,4 +416,8 @@ console.log(count.value) // 0
 
 ## Template Refs
 
+TODO
+
 ## `getCurrentInstance`
+
+TODO
