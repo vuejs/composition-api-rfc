@@ -59,7 +59,7 @@ The APIs proposed in this RFC provide the users with more flexibility when organ
 
 ### Better Type Inference
 
-Another common feature request from developers working on large projects is better TypeScript support. Vue's current API has posted some challenges when it comes to integration with TypeScript, mostly due to the fact that Vue relies on a single `this` context for exposing properties, and that the use of `this` in a Vue component is a bit more magical than plain JavaScript (e.g. `this` inside functions nested under `methods` points to the component instance rather than the `methods` object). In other words, Vue's existing API simply wasn't designed with type inference in mind, and that creates a lot of complexity when trying to make it work nicely with TypeScript.
+Another common feature request from developers working on large projects is better TypeScript support. Vue's current API has posed some challenges when it comes to integration with TypeScript, mostly due to the fact that Vue relies on a single `this` context for exposing properties, and that the use of `this` in a Vue component is a bit more magical than plain JavaScript (e.g. `this` inside functions nested under `methods` points to the component instance rather than the `methods` object). In other words, Vue's existing API simply wasn't designed with type inference in mind, and that creates a lot of complexity when trying to make it work nicely with TypeScript.
 
 Most users who use Vue with TypeScript today are using `vue-class-component`, a library that allows components to be authored as TypeScript classes (with the help of decorators). While designing 3.0, we have attempted to provide a built-in Class API to better tackle the typing issues in a [previous (dropped) RFC](https://github.com/vuejs/rfcs/pull/17). However, as we discussed and iterated on the design, we noticed that in order for the Class API to resolve the typing issues, it must rely on decorators - which is a very unstable stage 2 proposal with a lot of uncertainty regarding its implementation details. This makes it a rather risky foundation to build upon. (More details on Class API type issues [here]((#type-issues-with-class-api)))
 
@@ -177,7 +177,7 @@ The same problem would occur when a value is assigned to an object as a property
 ``` js
 // simplified pseudo code
 function computed(getter) {
-  let ref = {
+  const ref = {
     value: null
   }
   watch(() => {
@@ -201,7 +201,7 @@ state.count++ // -> 2
 
 **Here `double` is an object that we call a "ref", as it serves as a reactive reference to the internal value it is holding.**
 
-> You might be aware that Vue already has the concept of "refs", but only for referencing DOM elements or component instances in templates ("template refs"). Check out [this](#template-refs) to see how the new refs system can be used for both logical state and template refs.
+> You might be aware that Vue already has the concept of "refs", but only for referencing DOM elements or component instances in templates ("template refs"). Check out [this](./api.html#template-refs) to see how the new refs system can be used for both logical state and template refs.
 
 In addition to computed refs, we can also directly create plain mutable refs using the `ref` API:
 
