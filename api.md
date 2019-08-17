@@ -706,7 +706,7 @@ Refs used as templates refs behave just like any other refs: they are reactive a
     ``` html
     <div
       v-for="(item, i) in list"
-      :ref="div => { divs[i] = item }">
+      :ref="el => { divs[i] = el }">
     </div>
     ```
 
