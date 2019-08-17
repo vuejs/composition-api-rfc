@@ -421,7 +421,7 @@ function useCreateFolder (openFolder) {
 }
 ```
 
-Notice how all the logic related to the create new folder feature is now collocated and encapsulated in a single function. The function is also somewhat self-documenting due to its descriptive name. This is what we call a **composition function**. This pattern can be applied to all the other logical concerns in the component, resulting in a number of nicely decoupled functions:
+Notice how all the logic related to the create new folder feature is now collocated and encapsulated in a single function. The function is also somewhat self-documenting due to its descriptive name. This is what we call a **composition function**. It is a recommended convention to start the function's name with `use` to indicate that it is a composition function. This pattern can be applied to all the other logical concerns in the component, resulting in a number of nicely decoupled functions:
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/499550/62783026-810e6180-ba89-11e9-8774-e7771c8095d6.png" alt="file explorer (comparison)" width="600">
@@ -627,6 +627,104 @@ We have discussed whether it is possible to completely avoid the Ref concept and
 - Computed getters can return primitive types, so a Ref-like container is unavoidable.
 
 - Composition functions expecting or returning only primitive types also need to wrap the value in an object just for reactivity's sake. It's very likely that users will end up inventing their own Ref like patterns (and causing ecosystem fragmentation) if there is not a standard implementation provided by the framework.
+
+### Ref vs. Reactive
+
+Understandably, users may get confused regarding which to use between `ref` and `reactive`. First thing to know is that you **will** need to understand both to efficiently make use of the Composition API. Using one exclusively will most likely lead to esoteric workarounds or reinvented wheels.
+
+The difference between using `ref` and `reactive` can be somewhat compared to how you would write standard JavaScript logic:
+
+``` js
+// style 1: separate variables
+let x = 0
+let y = 0
+
+function updatePosition(e) {
+  x = e.pageX
+  y = e.pageY
+}
+
+// --- compared to ---
+
+// style 2: single object
+const pos = {
+  x: 0,
+  y: 0
+}
+
+function updatePosition(e) {
+  pos.x = 0
+  pos.y = 0
+}
+```
+
+- If using `ref`, we are largely translating style (1) to a more verbose equivalent using refs (in order to make the primitive values reactive).
+
+- Using `reactive` is nearly identical to style (2). We only need to create the object with `reactive` and that's it.
+
+However, the problem with going `reactive`-only is that the consumer of a composition function must keep the reference to the returned object at all times in order to retain reactivity. The object cannot be destructured or spread:
+
+``` js
+// composition function
+function useMousePosition() {
+  const pos = reactive({
+    x: 0,
+    y: 0
+  })
+
+  // ...
+  return pos
+}
+
+// consuming component
+export default {
+  setup() {
+    // reactivity lost!
+    const { x, y } = useMousePosition()
+    return {
+      x,
+      y
+    }
+
+    // reactivity lost!
+    return {
+      ...useMousePosition()
+    }
+
+    // this is the only way to retain reactivity.
+    // you must return `pos` as-is and reference x and y as `pos.x` and `pos.y`
+    // in the template.
+    return {
+      pos: useMousePosition()
+    }
+  }
+}
+```
+
+The [`toRefs`](./api.html#torefs) API is provided to deal with this constraint - it converts each property on a reactive object to a corresponding ref:
+
+``` js
+function useMousePosition() {
+  const pos = reactive({
+    x: 0,
+    y: 0
+  })
+
+  // ...
+  return toRef(pos)
+}
+
+// x & y are now refs!
+const { x, y } = useMousePosition()
+```
+
+To sum up, there are two viable styles:
+
+1. Use `ref` and `reactive` just like how you'd declare primitive type variables and object variables in normal JavaScript. It is recommended to use a type system with IDE support when using this style.
+
+2. Use `reactive` whenever you can, and remember to use `toRefs` when returning reactive objects from composition functions. This reduces the mental overhead of refs but does not eliminate the need to be familiar with the concept.
+
+At this stage, we believe it is too early to mandate a best practice on `ref` vs. `reactive`. We recommend you to go with the style that aligns with your mental model better from the two options above. We will be collecting real world user feedback and eventually provide more definitive guidance on this topic.
 
 ### Verbosity of the Return Statement
 
