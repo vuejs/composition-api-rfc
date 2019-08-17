@@ -581,7 +581,7 @@ export function provideStore(store) {
 export function useStore() {
   const storeRef = inject(StoreSymbol)
   if (!storeRef) {
-    // throw error, no router provided
+    // throw error, no store provided
   }
   return storeRef.value
 }
