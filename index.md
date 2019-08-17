@@ -557,6 +557,57 @@ In comparison, with Composition API:
 
 - There are no unnecessary component instances created just for logic reuse.
 
+### Usage Alongside Existing API
+
+The Composition API can be used alongside the existing options-based API.
+
+- The Composition API is resolved before 2.x options (`data`, `computed` & `methods`) and will have no access to the properties defined by those options.
+
+- Properties returned from `setup()` will be exposed on `this` and will be accessible inside 2.x options.
+
+### Plugin Development
+
+Many Vue plugins today inject properties onto `this`. For example, Vue Router injects `this.$route` and `this.$router`, and Vuex injects `this.$store`. This has made type inference tricky since each plugin requires the user to augment the Vue typing for injected properties.
+
+When using the Composition API, there is no `this`. Instead, plugins will leverage `provide` and `inject` internally and expose a composition function. The following is hypothetical code for a plugin:
+
+``` js
+const StoreSymbol = Symbol()
+
+export function provideStore(store) {
+  provide(StoreSymbol, store)
+}
+
+export function useStore() {
+  const storeRef = inject(StoreSymbol)
+  if (!storeRef) {
+    // throw error, no router provided
+  }
+  return storeRef.value
+}
+```
+
+And in consuming code:
+
+``` js
+// provide store at component root
+//
+const App = {
+  setup() {
+    provideStore(store)
+  }
+}
+
+const Child = {
+  setup() {
+    const store = useStore()
+    // use the store
+  }
+}
+```
+
+Note the store can also be provided via the app-level provide proposed in the [Global API change RFC](https://github.com/vuejs/rfcs/blob/global-api-change/active-rfcs/0000-global-api-change.md#provide--inject), but the `useStore` style API in the consuming component would be the same.
+
 ## Drawbacks
 
 ### Overhead of Introducing Refs

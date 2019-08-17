@@ -160,6 +160,10 @@ The `setup` function is a new component option. It serves as the entry point for
     ): Data
     ```
 
+    ::: tip
+    To get type inference for the arguments passed to `setup()`, the use of [`createComponent`](#createcomponent) is needed.
+    :::
+
 ## `reactive`
 
 Takes an object and returns a reactive proxy of the original. This is equivalent to 2.x's `Vue.observable()`.
@@ -705,3 +709,22 @@ Refs used as templates refs behave just like any other refs: they are reactive a
       :ref="div => { divs[i] = item }">
     </div>
     ```
+
+## `createComponent`
+
+This function is provided solely for type inference. It is needed in order for TypeScript to know that an object should be treated as a component definition so that it can infer the types of the props passed to `setup()`. It is a no-op behavior-wise. It expects a component definition and returns the argument as-is.
+
+``` ts
+import { createComponent } from 'vue'
+
+export default createComponent({
+  props: {
+    foo: String
+  },
+  setup(props) {
+    props.foo // <- type: string
+  }
+})
+```
+
+When using SFCs with VSCode + Vetur, the export will be implicitly wrapped so there is no need for the users to do this themselves.
