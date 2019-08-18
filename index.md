@@ -711,7 +711,7 @@ function useMousePosition() {
   })
 
   // ...
-  return toRef(pos)
+  return toRefs(pos)
 }
 
 // x & y are now refs!
