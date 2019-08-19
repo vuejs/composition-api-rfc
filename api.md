@@ -400,6 +400,16 @@ console.log(count.value) // 0
     watch(count, (count, prevCount) => { /* ... */ })
     ```
 
+- **Watching Multiple Sources**
+
+    Both getters and refs are considered "sources" that can be watched. A watcher can also watch multiple sources at the same time using an Array:
+
+    ``` js
+    watch([fooRef, barRef], ([foo, bar], [prevFoo, prevBar]) => {
+      /* ... */
+    })
+    ```
+
 - **Callback Flush Timing**
 
     Vue's reactivity system buffers watcher callbacks and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watcher callback. When a user watcher callback is queued, is is always invoked after all component render functions:
@@ -501,15 +511,30 @@ console.log(count.value) // 0
       onTrigger?: (event: DebuggerEvent) => void
     }
 
+    // basic usage
     function watch(
       effect: () => void,
       options?: WatchOptions
     ): StopHandle
 
+    // wacthing single source
+    type WatcherSource<T> = Ref<T> | (() => T)
+
     function watch<T>(
-      source: Ref<T> | () => T,
-      effect: (value: T) => void,
+      source: WatcherSource<T>,
+      effect: (value: T, oldValue: T) => void,
       options?: WatchOptions
+    ): StopHandle
+
+    // watching multiple sources
+    type MapSources<T> = {
+      [K in keyof T]: T[K] extends WatcherSource<infer V> ? V : never
+    }
+
+    function watch<T extends WatcherSource<unknown>[]>(
+      sources: T
+      effect: (values: MapSources<T>, oldValues: MapSources<T>) => void,
+      options? : WatchOptions
     ): StopHandle
     ```
 
