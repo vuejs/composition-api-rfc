@@ -410,6 +410,46 @@ console.log(count.value) // 0
     })
     ```
 
+- **Side Effect Cleanup**
+
+    Sometimes the watcher callback will perform async side effects that need to be invalidated when the watched value changes. The watcher callback receives a *cleanup registrator function* that can be used to register a cleanup callback. The cleanup callback is called when:
+
+    - the watcher is about to re-run
+    - the watcher is stopped (i.e. when the component is unmounted if `watch` is used inside `setup()`)
+
+    ``` js
+    // cleanup passed as 1st argument to simple usage
+    watch(onCleanup => {
+      const token = performAsyncOperation(id.value)
+      onCleanup(() => {
+        // id has changed or watcher is stopped.
+        // invalidate previously pending async operation
+        token.cancel()
+      })
+    })
+
+    // cleanup passed as 3rd argument in with-source usage
+    watch(idRef, (id, oldId, onCleanup) => {
+      const token = performAsyncOperation(id)
+      onCleanup(() => {
+        // id has changed or watcher is stopped.
+        // invalidate previously pending async operation
+        token.cancel()
+      })
+    })
+    ```
+
+    We are registering cleanup via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. It is very common for the watcher callback to be an async function when performing data fetching:
+
+    ``` js
+    const data = value(null)
+    watch(getId, async (id) => {
+      data.value = await fetchData(id)
+    })
+    ```
+
+    An async function implicitly returns a Promise, but the cleanup function needs to be registered immediately before the Promise resolves. In addition, Vue relies on the returned Promise to automatically handle potential errors in the Promise chain.
+
 - **Callback Flush Timing**
 
     Vue's reactivity system buffers watcher callbacks and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watcher callback. When a user watcher callback is queued, is is always invoked after all component render functions:
@@ -496,6 +536,14 @@ console.log(count.value) // 0
     ``` ts
     type StopHandle = () => void
 
+    type WatcherSource<T> = Ref<T> | (() => T)
+
+    type MapSources<T> = {
+      [K in keyof T]: T[K] extends WatcherSource<infer V> ? V : never
+    }
+
+    type InvalidationRegister = (invalidate: () => void) => void
+
     interface DebuggerEvent {
       effect: ReactiveEffect
       target: any
@@ -513,27 +561,29 @@ console.log(count.value) // 0
 
     // basic usage
     function watch(
-      effect: () => void,
+      effect: (onInvalidate: InvalidationRegister) => void,
       options?: WatchOptions
     ): StopHandle
 
     // wacthing single source
-    type WatcherSource<T> = Ref<T> | (() => T)
-
     function watch<T>(
       source: WatcherSource<T>,
-      effect: (value: T, oldValue: T) => void,
+      effect: (
+        value: T,
+        oldValue: T,
+        onInvalidate: InvalidationRegister
+      ) => void,
       options?: WatchOptions
     ): StopHandle
 
     // watching multiple sources
-    type MapSources<T> = {
-      [K in keyof T]: T[K] extends WatcherSource<infer V> ? V : never
-    }
-
     function watch<T extends WatcherSource<unknown>[]>(
       sources: T
-      effect: (values: MapSources<T>, oldValues: MapSources<T>) => void,
+      effect: (
+        values: MapSources<T>,
+        oldValues: MapSources<T>,
+        onInvalidate: InvalidationRegister
+      ) => void,
       options? : WatchOptions
     ): StopHandle
     ```
