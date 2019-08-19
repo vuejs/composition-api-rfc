@@ -410,6 +410,19 @@ console.log(count.value) // 0
     })
     ```
 
+- **Stopping a Watcher**
+
+    When `watch` is called during a component's `setup()` function, the watcher is linked to the component's lifecycle, and will be automatically stopped when the component is unmounted.
+
+    In other cases, `watch` returns a stop handle which can be called to explicitly stop the watcher:
+
+    ``` js
+    const stop = watch(() => { /* ... */ })
+
+    // later
+    stop()
+    ```
+
 - **Side Effect Cleanup**
 
     Sometimes the watcher callback will perform async side effects that need to be invalidated when the watched value changes. The watcher callback receives a *cleanup registrator function* that can be used to register a cleanup callback. The cleanup callback is called when:
