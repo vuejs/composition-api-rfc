@@ -660,55 +660,69 @@ These lifecycle hook registration functions can only be used synchronously durin
 `provide` and `inject` enables dependency injection similar to the 2.x `provide/inject` options. Both can only be called during `setup()` with a current active instance.
 
 ``` js
-import { ref, provide, inject } from 'vue'
+import { provide, inject } from 'vue'
 
-const CountSymbol = Symbol()
+const ThemeSymbol = Symbol()
 
 const Ancestor = {
   setup() {
-    // providing a ref can make it reactive
-    const count = ref(0)
-    provide(CountSymbol, count)
+    provide(ThemeSymbol, 'dark')
   }
 }
 
 const Descendent = {
   setup() {
-    const count = inject(CountSymbol, 1 /* optional default value */)
+    const theme = inject(ThemeSymbol, 'light' /* optional default value */)
     return {
-      count
+      theme
     }
   }
 }
 ```
 
-- **Details**
+`inject` accepts an optional default value as the 2nd argument. If a default value is not provided and the property is not found on the provide context, `inject` returns `undefined`.
 
-    - If a dependency is found, `inject` always returns a ref regardless of whether the provided value is a ref or not.
+- **Injection Reactivity**
 
-      - If a ref is provided, the ref will be returned directly by `inject`. **Reactivity is retained in this case** (i.e. the child will update if ancestor mutates the provided value).
+    To retain reactivity between provided and injected values, a ref can be used:
 
-      - If a plain value is provided, a ref will be created with its `.value` pointing to the original value. However, reactivity is not retained and the value will remain constant.
+    ``` js
+    // in provider
+    const themeRef = ref('dark')
+    provide(ThemeSymbol, themeRef)
 
-    - `inject` accepts an optional second argument as a default value in case a provided value cannot be found. In such case:
+    // in consumer
+    const theme = inject(ThemeSymbol, ref('light'))
+    watch(() => {
+      console.log(`theme set to: ${theme.value}`)
+    })
+    ```
 
-      - If the default value is already ref, it will be returned directly.
+    If a reactive object is injected, it can also be reactively observed.
 
-      - Otherwise, a ref wrapping the default value will be returned.
+- **Injection Immutability**
 
-    - If a dependency is not found and a default value is not provided, `inject` returns `undefined`.
+    When providing refs and reactive objects, the injected values will be **immutable proxies** of the original, similar to props:
+
+    ``` js
+    const theme = inject(ThemeSymbol, ref('light'))
+
+    // Won't work. Attempting to mutate an injected ref or reactive object
+    // results in a warning
+    theme.value = 'dark'
+    ```
 
 - **Typing**
 
     ``` ts
     interface InjectionKey<T> extends Symbol {}
 
-    function provide<T>(key: InjectionKey<T> | string, value: T | Ref<T>): void
+    function provide<T>(key: InjectionKey<T> | string, value: T): void
 
     // without default value
-    function inject<T>(key: InjectionKey<T> | string): Ref<T> | undefined
+    function inject<T>(key: InjectionKey<T> | string): T | undefined
     // with default value
-    function inject<T>(key: InjectionKey<T> | string, defaultValue: T): Ref<T>
+    function inject<T>(key: InjectionKey<T> | string, defaultValue: T): T
     ```
 
     Vue provides a `InjectionKey` interface which is a generic type that extends `Symbol`. It can be used to sync the type of the injected value between the provider and the consumer:
@@ -720,7 +734,7 @@ const Descendent = {
 
     provide(key, 'foo') // providing non-string value will result in error
 
-    const foo = inject(key) // type of foo: Ref<string> | undefined
+    const foo = inject(key) // type of foo: string | undefined
     ```
 
     If using string keys or non-typed symbols, the type of the injected value will need to be explicitly declared:
