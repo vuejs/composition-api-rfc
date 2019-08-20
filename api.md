@@ -172,6 +172,8 @@ Takes an object and returns a reactive proxy of the original. This is equivalent
 const obj = reactive({ count: 0 })
 ```
 
+The reactive conversion is "deep": it affects all nested properties. In the ES2015 Proxy based implementation, the returned proxy is **not** equal to the original object. It is recommended to work exclusively with the reactive proxy and avoid relying on the original object.
+
 - **Typing**
 
     ``` ts
@@ -189,6 +191,8 @@ console.log(count.value) // 0
 count.value++
 console.log(count.value) // 1
 ```
+
+If an object is assigned as a ref's value, the object is made deeply reactive by the `reactive` method.
 
 - **Access in Templates**
 
