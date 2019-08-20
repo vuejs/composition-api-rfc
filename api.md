@@ -704,18 +704,6 @@ const Descendent = {
 
     If a reactive object is injected, it can also be reactively observed.
 
-- **Injection Immutability**
-
-    When providing refs and reactive objects, the injected values will be **immutable proxies** of the original, similar to props:
-
-    ``` js
-    const theme = inject(ThemeSymbol, ref('light'))
-
-    // Won't work. Attempting to mutate an injected ref or reactive object
-    // results in a warning
-    theme.value = 'dark'
-    ```
-
 - **Typing**
 
     ``` ts
