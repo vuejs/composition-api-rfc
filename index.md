@@ -569,7 +569,7 @@ The Composition API can be used alongside the existing options-based API.
 
 Many Vue plugins today inject properties onto `this`. For example, Vue Router injects `this.$route` and `this.$router`, and Vuex injects `this.$store`. This has made type inference tricky since each plugin requires the user to augment the Vue typing for injected properties.
 
-When using the Composition API, there is no `this`. Instead, plugins will leverage `provide` and `inject` internally and expose a composition function. The following is hypothetical code for a plugin:
+When using the Composition API, there is no `this`. Instead, plugins will leverage [`provide` and `inject`](./api.html#provide-inject) internally and expose a composition function. The following is hypothetical code for a plugin:
 
 ``` js
 const StoreSymbol = Symbol()
@@ -579,11 +579,11 @@ export function provideStore(store) {
 }
 
 export function useStore() {
-  const storeRef = inject(StoreSymbol)
-  if (!storeRef) {
+  const store = inject(StoreSymbol)
+  if (!store) {
     // throw error, no store provided
   }
-  return storeRef.value
+  return store
 }
 ```
 
