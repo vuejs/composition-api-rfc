@@ -744,15 +744,7 @@ const Descendent = {
     If using string keys or non-typed symbols, the type of the injected value will need to be explicitly declared:
 
     ``` ts
-    const foo = inject<string>('foo') // Ref<string> | undefined
-    ```
-
-    You can also type cast using the `Ref` type:
-
-    ``` js
-    import { Ref } from 'vue'
-
-    const foo = inject('foo') as Ref<string>
+    const foo = inject<string>('foo') // string | undefined
     ```
 
 ## Template Refs
