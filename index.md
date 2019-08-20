@@ -800,11 +800,11 @@ In addition, currently there is no way to leverage contextual typing for the arg
 
 ### Comparison with React Hooks
 
-The function based API provides the same level of logic composition capabilities as React Hooks, but with some important differences. Unlike React hooks, the `setup()` function is called only once. This means code using Vue's function APIs are:
+The function based API provides the same level of logic composition capabilities as React Hooks, but with some important differences. Unlike React hooks, the `setup()` function is called only once. This means code using Vue's Composition API is:
 
 - In general more aligned with the intuitions of idiomatic JavaScript code;
 - Not sensitive to call order and can be conditional;
-- Not called repeatedly on each render and produce less GC pressure;
+- Not called repeatedly on each render and produces less GC pressure;
 - Not subject to the issue where `useCallback` is almost always needed in order to prevent inline handlers causing over-re-rendering of child components;
 - Not subject to the issue where `useEffect` and `useMemo` may capture stale variables if the user forgets to pass the correct dependency array. Vue's automated dependency tracking ensures watchers and computed values are always correctly invalidated.
 
