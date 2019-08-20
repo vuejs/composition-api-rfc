@@ -802,10 +802,34 @@ Refs used as templates refs behave just like any other refs: they are reactive a
     Composition API template refs do not have special handling when used inside `v-for`. Instead, use function refs (new feature in 3.0) to perform custom handling:
 
     ``` html
-    <div
-      v-for="(item, i) in list"
-      :ref="el => { divs[i] = el }">
-    </div>
+    <template>
+      <div
+        v-for="(item, i) in list"
+        :ref="el => { divs[i] = el }">
+        {{ item }}
+      </div>
+    </template>
+
+    <script>
+    import { ref, reactive, onBeforeUpdate } from 'vue'
+
+    export default {
+      setup() {
+        const list = reactive([1, 2, 3])
+        const divs = ref([])
+
+        // make sure to reset the refs before each update
+        onBeforeUpdate(() => {
+          divs.value = []
+        })
+
+        return {
+          list,
+          divs
+        }
+      }
+    }
+    </script>
     ```
 
 ## `createComponent`
