@@ -459,7 +459,7 @@ console.log(count.value) // 0
     We are registering cleanup via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. It is very common for the watcher callback to be an async function when performing data fetching:
 
     ``` js
-    const data = value(null)
+    const data = ref(null)
     watch(getId, async (id) => {
       data.value = await fetchData(id)
     })
