@@ -269,7 +269,7 @@ const unwrapped = isRef(foo) ? foo.value : foo
 - **Typing**
 
     ``` ts
-    function isRef(value: any): boolean
+    function isRef<T = unknown>(value: unknown): value is Ref<T>
     ```
 
 ## `toRefs`
