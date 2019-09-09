@@ -837,4 +837,15 @@ export default createComponent({
 })
 ```
 
+Alternatively if your component does not use any option other than `setup` itself, you can pass the function directly:
+
+``` ts
+import { createComponent } from 'vue'
+
+// provide props typing via argument annotation.
+export default createComponent((props: { foo: string }) => {
+  props.foo
+})
+```
+
 When using SFCs with VSCode + Vetur, the export will be implicitly wrapped so there is no need for the users to do this themselves.
