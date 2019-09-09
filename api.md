@@ -367,6 +367,27 @@ console.log(count.value) // 0
     }): Ref<T>
     ```
 
+## `readonly`
+
+Takes an object (reactive or plain) or a ref and returns a readonly (and reactive) proxy to the original.
+
+``` js
+const original = reactive({ count: 0 })
+
+const copy = readonly(original)
+
+watch(() => {
+  // works for reactivity tracking
+  console.log(copy.count)
+})
+
+// mutating original will trigger watchers relying on the copy
+original.count++
+
+// mutating the copy will fail and result in a warning
+copy.count++ // warning!
+```
+
 ## `watch`
 
 - **Basic Usage**
