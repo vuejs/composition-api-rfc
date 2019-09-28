@@ -358,7 +358,7 @@ console.log(count.value) // 0
 
     ``` ts
     // read-only
-    function computed<T>(getter: () => T): Ref<T>
+    function computed<T>(getter: () => T): Readonly<Ref<Readonly<T>>>
 
     // writable
     function computed<T>(options: {
