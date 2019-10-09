@@ -5,6 +5,10 @@ sidebarDepth: 2
 
 # API Reference
 
+::: tip
+Download the free [Cheat Sheet](https://www.vuemastery.com/vue-3-cheat-sheet/) from Vue Mastery or watch their [Vue 3 Course](https://www.vuemastery.com/courses/vue-3-essentials/why-the-composition-api/).
+:::
+
 ## `setup`
 
 The `setup` function is a new component option. It serves as the entry point for using the Composition API inside components.

@@ -13,6 +13,10 @@ sidebar: auto
 
 Introducing the **Composition API**: a set of additive, function-based APIs that allow flexible composition of component logic.
 
+<iframe src="https://player.vimeo.com/video/365349055" width="640" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+
+Watch Vue Mastery's [Vue 3 Essentials Course](https://www.vuemastery.com/courses/vue-3-essentials/why-the-composition-api/). Download the [Vue 3 Cheat Sheet](https://www.vuemastery.com/vue-3-cheat-sheet/).
+
 ## Basic example
 
 ```html
