@@ -291,8 +291,8 @@ const stateAsRefs = toRefs(state)
 Type of stateAsRefs:
 
 {
-  foo: Ref<1>,
-  bar: Ref<2>
+  foo: Ref<number>,
+  bar: Ref<number>
 }
 */
 
