@@ -105,8 +105,6 @@ The `setup` function is a new component option. It serves as the entry point for
       setup(props, context) {
         context.attrs
         context.slots
-        context.parent
-        context.root
         context.emit
       }
     }
