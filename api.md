@@ -492,7 +492,7 @@ copy.count++ // warning!
 
 - **Callback Flush Timing**
 
-    Vue's reactivity system buffers watcher callbacks and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watcher callback. When a user watcher callback is queued, is is always invoked after all component render functions:
+    Vue's reactivity system buffers watcher callbacks and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watcher callback. When a user watcher callback is queued, it is always invoked after all component render functions:
 
     ``` html
     <template>
