@@ -15,7 +15,7 @@ The `setup` function is a new component option. It serves as the entry point for
 
 - **Invocation Timing**
 
-    `setup` is called right after the initial props resolution when a component instance is created. Lifecycle-wise, it is called after the `beforeCreate` hook and before the `created` hook.
+    `setup` is called right after the initial props resolution when a component instance is created. Lifecycle-wise, it is called before the `beforeCreate` hook.
 
 - **Usage with Templates**
 
