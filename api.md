@@ -163,7 +163,7 @@ The `setup` function is a new component option. It serves as the entry point for
     ```
 
     ::: tip
-    To get type inference for the arguments passed to `setup()`, the use of [`createComponent`](#createcomponent) is needed.
+    To get type inference for the arguments passed to `setup()`, the use of [`defineComponent`](#defineComponent) is needed.
     :::
 
 ## `reactive`
@@ -843,14 +843,14 @@ Refs used as templates refs behave just like any other refs: they are reactive a
     </script>
     ```
 
-## `createComponent`
+## `defineComponent`
 
 This function is provided solely for type inference. It is needed in order for TypeScript to know that an object should be treated as a component definition so that it can infer the types of the props passed to `setup()`. It is a no-op behavior-wise. It expects a component definition and returns the argument as-is.
 
 ``` ts
-import { createComponent } from 'vue'
+import { defineComponent } from 'vue'
 
-export default createComponent({
+export default defineComponent({
   props: {
     foo: String
   },
@@ -863,10 +863,10 @@ export default createComponent({
 Alternatively if your component does not use any option other than `setup` itself, you can pass the function directly:
 
 ``` ts
-import { createComponent } from 'vue'
+import { defineComponent } from 'vue'
 
 // provide props typing via argument annotation.
-export default createComponent((props: { foo: string }) => {
+export default defineComponent((props: { foo: string }) => {
   props.foo
 })
 ```
