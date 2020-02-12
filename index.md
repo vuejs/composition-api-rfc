@@ -73,7 +73,7 @@ In comparison, the APIs proposed in this RFC utilize mostly plain variables and 
 
 ### API Introduction
 
-Instead of bringing in new concepts, the APIs being proposed here are more about exposing Vue's core capabilities - such as creating and observing reactive state - as standalone functions. Here we will introduce a number of the most fundamental APIs and how they can be used in place of 2.x options to express in-component logic. Note this section focuses on introducing the basic ideas so it does not goes into full details for each API. Full API specs can be found in the [API Reference](./api) section.
+Instead of bringing in new concepts, the APIs being proposed here are more about exposing Vue's core capabilities - such as creating and observing reactive state - as standalone functions. Here we will introduce a number of the most fundamental APIs and how they can be used in place of 2.x options to express in-component logic. Note this section focuses on introducing the basic ideas so it does not go into full details for each API. Full API specs can be found in the [API Reference](./api) section.
 
 #### Reactive State and Side Effects
 
