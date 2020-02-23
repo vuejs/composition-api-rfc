@@ -628,6 +628,25 @@ copy.count++ // warning!
     ): StopHandle
     ```
 
+## getCurrentInstance
+
+Provides the current component instance (`vm`) where instance properties can be accessed.
+
+```js
+import { getCurrentInstance, ref } from '@vue/composition-api'
+
+const MyComponent = {
+  setup() {
+    const counter = ref(0)
+    const vm = getCurrentInstance()
+
+    vm.$on('increment', () => {
+        counter.value += 1
+    })
+  }
+}
+```
+
 ## Lifecycle Hooks
 
 Lifecycle hooks can be registered with directly imported `onXXX` functions:
