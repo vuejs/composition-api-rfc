@@ -96,6 +96,21 @@ The `setup` function is a new component option. It serves as the entry point for
     }
     ```
 
+    Do not destructure the `props` object, as it will lose reactivity:
+
+    ``` js
+    export default {
+      props: {
+        name: String
+      },
+      setup({ name }) {
+        watch(() => {
+          console.log(`name is: ` + name) // Will not be reactive!
+        })
+      }
+    }
+    ```
+
     The `props` object is immutable for userland code during development (will emit warning if user code attempts to mutate it).
 
     The second argument provides a context object which exposes a selective list of properties that were previously exposed on `this` in 2.x APIs:
