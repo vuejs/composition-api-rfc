@@ -257,6 +257,18 @@ If an object is assigned as a ref's value, the object is made deeply reactive by
     console.log(count.value) // 1
     ```
 
+    Note that ref unwrapping only happens when nested inside a reactive `Object`. There is no unwrapping performed when the ref is accessed from an `Array` or a native collection type like `Map`:
+
+    ``` js
+    const arr = reactive([ref(0)])
+    // need .value here
+    console.log(arr[0].value)
+
+    const map = reactive(new Map([['foo', ref(0)]]))
+    // need .value here
+    console.log(map.get('foo').value)
+    ```
+
 - **Typing**
 
     ``` ts
