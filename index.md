@@ -612,7 +612,7 @@ const Child = {
 }
 ```
 
-Note the store can also be provided via the app-level provide proposed in the [Global API change RFC](https://github.com/vuejs/rfcs/blob/global-api-change/active-rfcs/0000-global-api-change.md#provide--inject), but the `useStore` style API in the consuming component would be the same.
+Note the store can also be provided via the app-level provide proposed in the [Global API change RFC](https://github.com/vuejs/rfcs/blob/master/active-rfcs/0009-global-api-change.md#provide--inject), but the `useStore` style API in the consuming component would be the same.
 
 ## Drawbacks
 
