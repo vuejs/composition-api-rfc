@@ -81,7 +81,7 @@ The `setup` function is a new component option. It serves as the entry point for
     }
     ```
 
-    Note this `props` object is reactive - i.e. it is updated when new props are passed in, and can be observed and reacted upon using the `watch` function:
+    Note this `props` object is reactive - i.e. it is updated when new props are passed in, and can be observed and reacted upon using `watchEffect` or `watch`:
 
     ``` js
     export default {
@@ -89,14 +89,14 @@ The `setup` function is a new component option. It serves as the entry point for
         name: String
       },
       setup(props) {
-        watch(() => {
+        watchEffect(() => {
           console.log(`name is: ` + props.name)
         })
       }
     }
     ```
 
-    Do not destructure the `props` object, as it will lose reactivity:
+    However, do NOT destructure the `props` object, as it will lose reactivity:
 
     ``` js
     export default {
@@ -104,7 +104,7 @@ The `setup` function is a new component option. It serves as the entry point for
         name: String
       },
       setup({ name }) {
-        watch(() => {
+        watchEffect(() => {
           console.log(`name is: ` + name) // Will not be reactive!
         })
       }
@@ -405,7 +405,7 @@ const original = reactive({ count: 0 })
 
 const copy = readonly(original)
 
-watch(() => {
+watchEffect(() => {
   // works for reactivity tracking
   console.log(copy.count)
 })
@@ -417,32 +417,179 @@ original.count++
 copy.count++ // warning!
 ```
 
-## `watch`
+## `watchEffect`
 
-- **Basic Usage**
+Run a function immediately while reactively tracking its dependencies, and re-run it whenever the dependencies have changed.
 
-    Run a function on the next tick (see [Callback Flush Timing](#callback-flush-timing)) while reactively tracking its dependencies, and re-run it whenever the dependencies have changed.
+``` js
+const count = ref(0)
 
-    ``` js
+watchEffect(() => console.log(count.value))
+// -> logs 0
+
+setTimeout(() => {
+  count.value++
+  // -> logs 1
+}, 100)
+```
+
+### Stopping the Watcher
+
+When `watchEffect` is called during a component's `setup()` function or lifecycle hooks, the watcher is linked to the component's lifecycle, and will be automatically stopped when the component is unmounted.
+
+In other cases, it returns a stop handle which can be called to explicitly stop the watcher:
+
+``` js
+const stop = watchEffect(() => { /* ... */ })
+
+// later
+stop()
+```
+
+### Side Effect Invalidation
+
+Sometimes the watched effect function will perform async side effects that need to be cleaned up when it is invalidated (i.e state changed before the effects can be completed). The effect function receives an `onInvalidate` function that can be used to register a invalidation callback. The invalidation callback is called when:
+
+- the effect is about to re-run
+- the watcher is stopped (i.e. when the component is unmounted if `watchEffect` is used inside `setup()` or lifecycle hooks)
+
+``` js
+watchEffect(onInvalidate => {
+  const token = performAsyncOperation(id.value)
+  onInvalidate(() => {
+    // id has changed or watcher is stopped.
+    // invalidate previously pending async operation
+    token.cancel()
+  })
+})
+```
+
+We are registering the invalidation callback via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. It is very common for the effect function to be an async function when performing data fetching:
+
+``` js
+const data = ref(null)
+watchEffect(async () => {
+  data.value = await fetchData(props.id)
+})
+```
+
+An async function implicitly returns a Promise, but the cleanup function needs to be registered immediately before the Promise resolves. In addition, Vue relies on the returned Promise to automatically handle potential errors in the Promise chain.
+
+### Effect Flush Timing
+
+Vue's reactivity system buffers invalidated effects and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watched effect. When a user effect is queued, it is always invoked after all component update effects:
+
+``` html
+<template>
+  <div>{{ count }}</div>
+</template>
+
+<script>
+export default {
+  setup() {
     const count = ref(0)
 
-    watch(() => console.log(count.value))
-    // -> logs 0
+    watchEffect(() => {
+      console.log(count.value)
+    })
 
-    setTimeout(() => {
-      count.value++
-      // -> logs 1
-    }, 100)
+    return {
+      count
+    }
+  }
+}
+</script>
+```
+
+In this example:
+
+- The count will be logged synchronously on initial run.
+- When `count` is mutated, the callback will be called **after** the component has updated.
+
+Note the first run is executed before the component is mounted. So if you wish to access the DOM (or template refs) in a watched effect, do it in the mounted hook:
+
+``` js
+onMounted(() => {
+  watchEffect(() => {
+    // access the DOM or template refs
+  })
+})
+```
+
+In cases where a watcher effect needs to be re-run synchronously or before component updates, we can pass an additional options object with the `flush` option (default is `'post'`):
+
+``` js
+// fire synchronously
+watchEffect(() => { /* ... */ }, {
+  flush: 'sync'
+})
+
+// fire before component updates
+watchEffect(() => { /* ... */ }, {
+  flush: 'pre'
+})
+```
+
+### Watcher Debugging
+
+The `onTrack` and `onTrigger` options can be used to debug a watcher's behavior.
+
+- `onTrack` will be called when a reactive property or ref is tracked as a dependency
+- `onTrigger` will be called when the watcher callback is triggered by the mutation of a dependency
+
+Both callbacks will receive a debugger event which contains information on the dependency in question. It is recommended to place a `debugger` statement in these callbacks to interactively inspect the dependency:
+
+``` js
+watchEffect(
+  () => { /* side effect */ },
+  {
+    onTrigger(e) {
+      debugger
+    }
+  }
+)
+```
+
+`onTrack` and `onTrigger` only works in development mode.
+
+- **Typing**
+
+    ``` ts
+    function watchEffect(
+      effect: (onInvalidate: InvalidateCbRegistrator) => void,
+      options?: WatchEffectOptions
+    ): StopHandle
+
+    interface WatchEffectOptions {
+      flush?: 'pre' | 'post' | 'sync'
+      onTrack?: (event: DebuggerEvent) => void
+      onTrigger?: (event: DebuggerEvent) => void
+    }
+
+    interface DebuggerEvent {
+      effect: ReactiveEffect
+      target: any
+      type: OperationTypes
+      key: string | symbol | undefined
+    }
+
+    type InvalidateCbRegistrator = (invalidate: () => void) => void
+
+    type StopHandle = () => void
     ```
 
-- **Watching a Source**
+## `watch`
 
-    In some cases, we may also want to:
+The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corresponding `watch` option). `watch` requires watching a specific data source, and applies side effects in a separate callback function. It also is lazy by default - i.e. the callback is only called when the watched source has changed.
 
+- Compared to `watchEffect`, `watch` allows us to:
+    - Perform the side effect lazily;
     - Be more specific about what state should trigger the watcher to re-run;
-    - Keep a copy of the previous value of the watched state.
+    - Access both the previous and current value of the watched state.
 
-    In these cases we can use the alternative signature of `watch`:
+- **Watching a Single Source**
+
+    A watcher data source can either be a getter function that returns a value, or directly a ref:
 
     ``` js
     // watching a getter
@@ -452,11 +599,11 @@ copy.count++ // warning!
     // directly watching a ref
     const count = ref(0)
     watch(count, (count, prevCount) => { /* ... */ })
-    ```
+  ```
 
 - **Watching Multiple Sources**
 
-    Both getters and refs are considered "sources" that can be watched. A watcher can also watch multiple sources at the same time using an Array:
+    A watcher can also watch multiple sources at the same time using an Array:
 
     ``` js
     watch([fooRef, barRef], ([foo, bar], [prevFoo, prevBar]) => {
@@ -464,181 +611,21 @@ copy.count++ // warning!
     })
     ```
 
-- **Stopping a Watcher**
 
-    When `watch` is called during a component's `setup()` function, the watcher is linked to the component's lifecycle, and will be automatically stopped when the component is unmounted.
+- **Shared Behavior with `watchEffect`**
 
-    In other cases, `watch` returns a stop handle which can be called to explicitly stop the watcher:
-
-    ``` js
-    const stop = watch(() => { /* ... */ })
-
-    // later
-    stop()
-    ```
-
-- **Side Effect Cleanup**
-
-    Sometimes the watcher callback will perform async side effects that need to be invalidated when the watched value changes. The watcher callback receives a *cleanup registrator function* that can be used to register a cleanup callback. The cleanup callback is called when:
-
-    - the watcher is about to re-run
-    - the watcher is stopped (i.e. when the component is unmounted if `watch` is used inside `setup()`)
-
-    ``` js
-    // cleanup passed as 1st argument to simple usage
-    watch(onCleanup => {
-      const token = performAsyncOperation(id.value)
-      onCleanup(() => {
-        // id has changed or watcher is stopped.
-        // invalidate previously pending async operation
-        token.cancel()
-      })
-    })
-
-    // cleanup passed as 3rd argument in with-source usage
-    watch(idRef, (id, oldId, onCleanup) => {
-      const token = performAsyncOperation(id)
-      onCleanup(() => {
-        // id has changed or watcher is stopped.
-        // invalidate previously pending async operation
-        token.cancel()
-      })
-    })
-    ```
-
-    We are registering cleanup via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. It is very common for the watcher callback to be an async function when performing data fetching:
-
-    ``` js
-    const data = ref(null)
-    watch(getId, async (id) => {
-      data.value = await fetchData(id)
-    })
-    ```
-
-    An async function implicitly returns a Promise, but the cleanup function needs to be registered immediately before the Promise resolves. In addition, Vue relies on the returned Promise to automatically handle potential errors in the Promise chain.
-
-- **Callback Flush Timing**
-
-    Vue's reactivity system buffers watcher callbacks and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watcher callback. When a user watcher callback is queued, it is always invoked after all component render functions:
-
-    ``` html
-    <template>
-      <div>{{ count }}</div>
-    </template>
-
-    <script>
-    export default {
-      setup() {
-        const count = ref(0)
-
-        watch(() => {
-          console.log(count.value)
-        })
-
-        return {
-          count
-        }
-      }
-    }
-    </script>
-    ```
-
-    In this example:
-
-    - The count will not be logged synchronously.
-    - The callback will first be called after the component has mounted.
-    - When `count` is mutated, the callback will be called after the component has updated.
-
-    **Rule of thumb: when a watcher callback is invoked, the component state and DOM state are already in sync.**
-
-    In cases where a watcher callbacks needs to be invoked synchronously or before component updates, we can pass an additional options object with the `flush` option (default is `'post'`):
-
-    ``` js
-    // fire synchronously
-    watch(() => { /* ... */ }, {
-      flush: 'sync'
-    })
-
-    // fire before component updates
-    watch(() => { /* ... */ }, {
-      flush: 'pre'
-    })
-    ```
-
-- **Lazy Invocation**
-
-    In 2.x, the default behavior of `this.$watch` and the `watch` option is lazy: it will execute the getter eagerly, but only fires the callback after the first change. This has led to the need of duplicated logic in both a watcher callback and a lifecycle hook (e.g. `mounted`). The `watch` API proposed here avoids such duplication by invoking the callback eagerly. If you wish to use the 2.x behavior, you can use the `lazy` option:
-
-    ``` js
-    watch(
-      () => state.foo,
-      foo => console.log('foo is ' + foo),
-      { lazy: true }
-    )
-    ```
-
-    Note the `lazy` option only works when using the getter + callback format, since it does not make sense for the single callback usage.
-
-- **Debugging**
-
-    The `onTrack` and `onTrigger` options can be used to debug a watcher's behavior.
-
-    - `onTrack` will be called when a reactive property or ref is tracked as a dependency
-    - `onTrigger` will be called when the watcher callback is triggered by the mutation of a dependency
-
-    Both callbacks will receive a debugger event which contains information on the dependency in question. It is recommended to place a `debugger` statement in these callbacks to interactively inspect the dependency:
-
-    ``` js
-    watch(() => { /* ... */ }, {
-      onTrigger(e) {
-        debugger
-      }
-    })
-    ```
-
-    `onTrack` and `onTrigger` only works in development mode.
+    `watch` shares behavior with `watchEffect` in terms of [manual stoppage](#stopping-the-watcher), [side effect invalidation](#side-effect-invalidation) (with `onInvalidate` passed to the callback as the 3rd argument instead), [flush timing](#effect-flush-timing) and [debugging](#watcher-debugging).
 
 - **Typing**
 
     ``` ts
-    type StopHandle = () => void
-
-    type WatcherSource<T> = Ref<T> | (() => T)
-
-    type MapSources<T> = {
-      [K in keyof T]: T[K] extends WatcherSource<infer V> ? V : never
-    }
-
-    type InvalidationRegister = (invalidate: () => void) => void
-
-    interface DebuggerEvent {
-      effect: ReactiveEffect
-      target: any
-      type: OperationTypes
-      key: string | symbol | undefined
-    }
-
-    interface WatchOptions {
-      lazy?: boolean
-      flush?: 'pre' | 'post' | 'sync'
-      deep?: boolean
-      onTrack?: (event: DebuggerEvent) => void
-      onTrigger?: (event: DebuggerEvent) => void
-    }
-
-    // basic usage
-    function watch(
-      effect: (onInvalidate: InvalidationRegister) => void,
-      options?: WatchOptions
-    ): StopHandle
-
     // wacthing single source
     function watch<T>(
       source: WatcherSource<T>,
-      effect: (
+      callback: (
         value: T,
         oldValue: T,
-        onInvalidate: InvalidationRegister
+        onInvalidate: InvalidateCbRegistrator
       ) => void,
       options?: WatchOptions
     ): StopHandle
@@ -646,13 +633,25 @@ copy.count++ // warning!
     // watching multiple sources
     function watch<T extends WatcherSource<unknown>[]>(
       sources: T
-      effect: (
+      callback: (
         values: MapSources<T>,
         oldValues: MapSources<T>,
-        onInvalidate: InvalidationRegister
+        onInvalidate: InvalidateCbRegistrator
       ) => void,
       options? : WatchOptions
     ): StopHandle
+
+    type WatcherSource<T> = Ref<T> | (() => T)
+
+    type MapSources<T> = {
+      [K in keyof T]: T[K] extends WatcherSource<infer V> ? V : never
+    }
+
+    // see `watchEffect` typing for shared options
+    interface WatchOptions extends WatchEffectOptions {
+      immediate?: boolean // default: false
+      deep?: boolean
+    }
     ```
 
 ## Lifecycle Hooks
@@ -678,6 +677,8 @@ const MyComponent = {
 ```
 
 These lifecycle hook registration functions can only be used synchronously during `setup()`, since they rely on internal global state to locate the current active instance (the component instance whose `setup()` is being called right now). Calling them without a current active instance will result in an error.
+
+The component instance context is also set during the synchronous execution of lifecycle hooks, so watchers and computed properties created inside synchronously inside lifecycle hooks are also automatically tore down when the component unmounts.
 
 - **Mapping between 2.x Lifecycle Options and Composition API**
 
@@ -747,7 +748,7 @@ const Descendent = {
 
     // in consumer
     const theme = inject(ThemeSymbol, ref('light'))
-    watch(() => {
+    watchEffect(() => {
       console.log(`theme set to: ${theme.value}`)
     })
     ```

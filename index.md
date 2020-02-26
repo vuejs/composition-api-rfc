@@ -90,23 +90,25 @@ const state = reactive({
 
 `reactive` is the equivalent of the current `Vue.observable()` API in 2.x, renamed to avoid confusion with RxJS observables. Here, the returned `state` is a reactive object that all Vue users should be familiar with.
 
-The essential use case for reactive state in Vue is that we can use it during render. Thanks to dependency tracking, the view automatically updates when reactive state changes. Rendering something in the DOM is considered a "side effect": our program is modifying state external to the program itself (the DOM). To apply and *automatically re-apply* a side effect based on reactive state, we can use the `watch` API:
+The essential use case for reactive state in Vue is that we can use it during render. Thanks to dependency tracking, the view automatically updates when reactive state changes. Rendering something in the DOM is considered a "side effect": our program is modifying state external to the program itself (the DOM). To apply and *automatically re-apply* a side effect based on reactive state, we can use the `watchEffect` API:
 
 ``` js
-import { reactive, watch } from 'vue'
+import { reactive, watchEffect } from 'vue'
 
 const state = reactive({
   count: 0
 })
 
-watch(() => {
+watchEffect(() => {
   document.body.innerHTML = `count is ${state.count}`
 })
 ```
 
-`watch` expects a function that applies the desired side effect (in this case, setting `innerHTML`). It executes the function immediately, and tracks all the reactive state properties it used during the execution as dependencies. Here, `state.count` would be tracked as a dependency for this watcher after the initial execution. When `state.count` is mutated at a future time, the inner function will be executed again.
+`watchEffect` expects a function that applies the desired side effect (in this case, setting `innerHTML`). It executes the function immediately, and tracks all the reactive state properties it used during the execution as dependencies. Here, `state.count` would be tracked as a dependency for this watcher after the initial execution. When `state.count` is mutated at a future time, the inner function will be executed again.
 
 This is the very essence of Vue's reactivity system. When you return an object from `data()` in a component, it is internally made reactive by `reactive()`. The template is compiled into a render function (think of it as a more efficient `innerHTML`) that makes use of these reactive properties.
+
+> `watchEffect` is similar to the 2.x `watch` option, but it doesn't require separating the watched data source and the side effect callback. Composition API also provides a `watch` function that behaves exactly the same as the 2.x option.
 
 Continuing the above example, this is how we would handle user input:
 
@@ -121,7 +123,7 @@ document.body.addEventListener('click', increment)
 But with Vue's templating system we don't need to wrangle with `innerHTML` or manually attaching event listeners. Let's simplify the example with a hypothetical `renderTemplate` method so we can focus on the reactivity side:
 
 ``` js
-import { reactive, watch } from 'vue'
+import { reactive, watchEffect } from 'vue'
 
 const state = reactive({
   count: 0
@@ -136,7 +138,7 @@ const renderContext = {
   increment
 }
 
-watch(() => {
+watchEffect(() => {
   // hypothetical internal code, NOT actual API
   renderTemplate(
     `<button @click="increment">{{ state.count }}</button>`,
@@ -165,7 +167,7 @@ What is `computed` returning here? If we take a guess at how `computed` is imple
 // simplified pseudo code
 function computed(getter) {
   let value
-  watch(() => {
+  watchEffect(() => {
     value = getter()
   })
   return value
@@ -184,7 +186,7 @@ function computed(getter) {
   const ref = {
     value: null
   }
-  watch(() => {
+  watchEffect(() => {
     ref.value = getter()
   })
   return ref
@@ -196,7 +198,7 @@ In addition, we also need to intercept read / write operations to the object's `
 ``` js
 const double = computed(() => state.count * 2)
 
-watch(() => {
+watchEffect(() => {
   console.log(double.value)
 }) // -> 0
 
@@ -239,7 +241,7 @@ const renderContext = {
   increment
 }
 
-watch(() => {
+watchEffect(() => {
   renderTemplate(
     `<button @click="increment">{{ count }}</button>`,
     renderContext
@@ -264,7 +266,7 @@ console.log(state.double)
 Our code so far already provides a working UI that can update based on user input - but the code runs only once and is not reusable. If we want to reuse the logic, a reasonable next step seems to be refactoring it into a function:
 
 ``` js
-import { reactive, computed, watch } from 'vue'
+import { reactive, computed, watchEffect } from 'vue'
 
 function setup() {
   const state = reactive({
@@ -284,7 +286,7 @@ function setup() {
 
 const renderContext = setup()
 
-watch(() => {
+watchEffect(() => {
   renderTemplate(
     `<button @click="increment">
       Count is: {{ state.count }}, double is: {{ state.double }}
@@ -338,7 +340,7 @@ So far we have covered the pure state aspect of a component: reactive state, com
 - When some state changes;
 - When the component is mounted, updated or unmounted (lifecycle hooks).
 
-We know that we can use the `watch` API to apply side effects based on state changes. As for performing side effects in different lifecycle hooks, we can use the dedicated `onXXX` APIs (which directly mirror the existing lifecycle options):
+We know that we can use the `watchEffect` and `watch` APIs to apply side effects based on state changes. As for performing side effects in different lifecycle hooks, we can use the dedicated `onXXX` APIs (which directly mirror the existing lifecycle options):
 
 ``` js
 import { onMounted } from 'vue'
@@ -822,7 +824,7 @@ Although taking very different routes, the Composition API and Svelte 3's compil
 
 ``` html
 <script>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watchEffect, onMounted } from 'vue'
 
 export default {
   setup() {
@@ -832,7 +834,7 @@ export default {
       count.value++
     }
 
-    watch(() => console.log(count.value))
+    watchEffect(() => console.log(count.value))
 
     onMounted(() => console.log('mounted!'))
 
