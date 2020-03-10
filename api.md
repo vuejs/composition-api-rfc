@@ -166,8 +166,6 @@ The `setup` function is a new component option. It serves as the entry point for
     interface SetupContext {
       attrs: Data
       slots: Slots
-      parent: ComponentInstance | null
-      root: ComponentInstance
       emit: ((event: string, ...args: unknown[]) => void)
     }
 
