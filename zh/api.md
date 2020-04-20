@@ -6,20 +6,20 @@ sidebarDepth: 2
 # API Reference
 
 ::: tip
-Download the free [Cheat Sheet](https://www.vuemastery.com/vue-3-cheat-sheet/) from Vue Mastery or watch their [Vue 3 Course](https://www.vuemastery.com/courses/vue-3-essentials/why-the-composition-api/).
+从 Vue Mastery 免费下载 [Cheat Sheet](https://www.vuemastery.com/vue-3-cheat-sheet/)，或观看 [Vue3 免费课程](https://www.vuemastery.com/courses/vue-3-essentials/why-the-composition-api/)
 :::
 
 ## `setup`
 
-The `setup` function is a new component option. It serves as the entry point for using the Composition API inside components.
+`setup` 函数是一个新的组件选项。作为在组件内使用 Composition API 的入口点。
 
 - **Invocation Timing**
 
-  `setup` is called right after the initial props resolution when a component instance is created. Lifecycle-wise, it is called before the `beforeCreate` hook.
+  在组件实例创建时，`setup` 会在初始化 props 后立即调用。从生命周期来看，它会在 `beforeCreate` 前被调用。
 
 - **Usage with Templates**
 
-  If `setup` returns an object, the properties on the object will be merged on to the render context for the component's template:
+  如果 `setup` 返回一个对象，则对象的属性将会被合并到组件模板的渲染上下文：
 
   ```html
   <template>
@@ -37,18 +37,18 @@ The `setup` function is a new component option. It serves as the entry point for
         // expose to template
         return {
           count,
-          object
+          object,
         }
-      }
+      },
     }
   </script>
   ```
 
-  Note that refs returned from `setup` are automatically unwrapped when accessed in the template so there's no need for `.value` in templates.
+  注意 `setup` 返回的 refs 在模板中访问时会自动解构，因此在模板中使用时不需要 `.value`。
 
 - **Usage with Render Functions / JSX**
 
-  `setup` can also return a render function, which can directly make use of reactive state declared in the same scope:
+  `setup` 也可以返回一个能使用同作用域下 reactive 状态的渲染函数：
 
   ```js
   import { h, ref, reactive } from 'vue'
@@ -59,58 +59,58 @@ The `setup` function is a new component option. It serves as the entry point for
       const object = reactive({ foo: 'bar' })
 
       return () => h('div', [count.value, object.foo])
-    }
+    },
   }
   ```
 
 - **Arguments**
 
-  The function receives the resolved props as its first argument:
+  该函数接收 props 作为其第一个参数：
 
   ```js
   export default {
     props: {
-      name: String
+      name: String,
     },
     setup(props) {
       console.log(props.name)
-    }
+    },
   }
   ```
 
-  Note this `props` object is reactive - i.e. it is updated when new props are passed in, and can be observed and reacted upon using `watchEffect` or `watch`:
+  注意 `props` 对象是响应式的，`watchEffect` 或 `watch` 会观察和响应 props 的更新：
 
   ```js
   export default {
     props: {
-      name: String
+      name: String,
     },
     setup(props) {
       watchEffect(() => {
         console.log(`name is: ` + props.name)
       })
-    }
+    },
   }
   ```
 
-  However, do NOT destructure the `props` object, as it will lose reactivity:
+  然而不要解构 `props` 对象，那样会使其失去响应：
 
   ```js
   export default {
     props: {
-      name: String
+      name: String,
     },
     setup({ name }) {
       watchEffect(() => {
         console.log(`name is: ` + name) // Will not be reactive!
       })
-    }
+    },
   }
   ```
 
-  The `props` object is immutable for userland code during development (will emit warning if user code attempts to mutate it).
+  在开发过程中，组件内尝试修改 `props` 时将会报出警告。
 
-  The second argument provides a context object which exposes a selective list of properties that were previously exposed on `this` in 2.x APIs:
+  第二个参数提供了一个包含 2.X APIs `this` 属性的上下文：
 
   ```js
   const MyComponent = {
@@ -118,11 +118,11 @@ The `setup` function is a new component option. It serves as the entry point for
       context.attrs
       context.slots
       context.emit
-    }
+    },
   }
   ```
 
-  `attrs` and `slots` are proxies to the corresponding values on the internal component instance. This ensures they always expose the latest values even after updates so that we can destructure them without worrying accessing a stale reference:
+  `attrs` 和 `slots` 都是组件实例上对应的代理对象，可以确保在更新变化后显示最新值：
 
   ```js
   const MyComponent = {
@@ -131,19 +131,19 @@ The `setup` function is a new component option. It serves as the entry point for
       function onClick() {
         console.log(attrs.foo) // guaranteed to be the latest reference
       }
-    }
+    },
   }
   ```
 
-  There are a number of reasons for placing `props` as a separate first argument instead of including it in the context:
+  出于一些原因将 `props` 作为第一个参数，而不是包含在上下文中：
 
-  - It's much more common for a component to use `props` than the other properties, and very often a component uses only `props`.
+  - 组件使用 `props` 的场景更多，有时候甚至只使用 `props`
 
   - Having `props` as a separate argument makes it easier to type it individually (see [TypeScript-only Props Typing](#typescript-only-props-typing) below) without messing up the types of other properties on the context. It also makes it possible to keep a consistent signature across `setup`, `render` and plain functional components with TSX support.
 
 - **Usage of `this`**
 
-  **`this` is not available inside `setup()`.** Since `setup()` is called before 2.x options are resolved, `this` inside `setup()` (if made available) will behave quite differently from `this` in other 2.x options. Making it available will likely cause confusions when using `setup()` along other 2.x options. Another reason for avoiding `this` in `setup()` is a very common pitfall for beginners:
+  **`this` 在 `setup()` 中不可用。** 由于 `setup()` 在解析 2.x 选项前被调用，`setup()` 中的 `this` 将与 2.X 选项中的 `this` 完全不同。同时在 `setup()` 和 2.x 选项中使用 `this` 时将造成混乱。在 `setup()` 中避免这种情况的另一个原因是这对于初学者来说非常常见的陷阱：
 
   ```js
   setup() {
@@ -170,20 +170,20 @@ The `setup` function is a new component option. It serves as the entry point for
   ```
 
   ::: tip
-  To get type inference for the arguments passed to `setup()`, the use of [`defineComponent`](#defineComponent) is needed.
+  为了获得传递给 `setup()` 参数的类型推断，需要使用 [`defineComponent`](#defineComponent)。
   :::
 
 ## Reactivity APIs
 
 ### `reactive`
 
-Takes an object and returns a reactive proxy of the original. This is equivalent to 2.x's `Vue.observable()`.
+传入一个对象并返回原始对象的响应代理。等同于 2.x 的 `Vue.observable()`
 
 ```js
 const obj = reactive({ count: 0 })
 ```
 
-The reactive conversion is "deep": it affects all nested properties. In the ES2015 Proxy based implementation, the returned proxy is **not** equal to the original object. It is recommended to work exclusively with the reactive proxy and avoid relying on the original object.
+响应式转换是"深度的"：它影响所有嵌套的属性。基于 ES2015 代理实现，返回的代理对象 **不等于** 原始对象。建议仅使用代理对象而避免依赖原始对象。
 
 - **Typing**
 
@@ -193,7 +193,7 @@ The reactive conversion is "deep": it affects all nested properties. In the ES20
 
 ### `ref`
 
-Takes an inner value and returns a reactive and mutable ref object. The ref object has a single property `.value` that points to the inner value.
+接受一个参数值并返回一个响应且可改变的 ref 对象。ref 对象拥有一个指向内部值的单一属性 `.value`。
 
 ```js
 const count = ref(0)
@@ -203,11 +203,11 @@ count.value++
 console.log(count.value) // 1
 ```
 
-If an object is assigned as a ref's value, the object is made deeply reactive by the `reactive` method.
+如果传入 ref 一个对象，将调用 `reactive` 方法进行深度响应转换。
 
 - **Access in Templates**
 
-  When a ref is returned as a property on the render context (the object returned from `setup()`) and accessed in the template, it automatically unwraps to the inner value. There is no need to append `.value` in the template:
+  当 ref 作为渲染上下文返回（`setup()` 返回的对象）并在模板中使用时，它会自动解构，无需在模板内添加 `.value`：
 
   ```html
   <template>
@@ -218,21 +218,21 @@ If an object is assigned as a ref's value, the object is made deeply reactive by
     export default {
       setup() {
         return {
-          count: ref(0)
+          count: ref(0),
         }
-      }
+      },
     }
   </script>
   ```
 
 - **Access in Reactive Objects**
 
-  When a ref is accessed or mutated as a property of a reactive object, it automatically unwraps to the inner value so it behaves like a normal property:
+  当 ref 作为 reactive 对象的属性被访问或修改时，将自动解构 value 值，其行为类似普通属性：
 
   ```js
   const count = ref(0)
   const state = reactive({
-    count
+    count,
   })
 
   console.log(state.count) // 0
@@ -241,7 +241,7 @@ If an object is assigned as a ref's value, the object is made deeply reactive by
   console.log(count.value) // 1
   ```
 
-  Note that if a new ref is assigned to a property linked to an existing ref, it will replace the old ref:
+  注意如果将一个新的 ref 分配给现有的 ref， 将替换旧的 ref：
 
   ```js
   const otherCount = ref(2)
@@ -251,7 +251,7 @@ If an object is assigned as a ref's value, the object is made deeply reactive by
   console.log(count.value) // 1
   ```
 
-  Note that ref unwrapping only happens when nested inside a reactive `Object`. There is no unwrapping performed when the ref is accessed from an `Array` or a native collection type like `Map`:
+  注意当嵌套在 reactive `Object` 中时，ref 才会解构。从 `Array` 或诸如 `Map` 的 collection 中访问 ref 时，不会自动解构：
 
   ```js
   const arr = reactive([ref(0)])
@@ -273,7 +273,7 @@ If an object is assigned as a ref's value, the object is made deeply reactive by
   function ref<T>(value: T): Ref<T>
   ```
 
-  Sometimes we may need to specify complex types for a ref's inner value. We can do that succinctly by passing a generics argument when calling `ref` to override the default inference:
+  有时我们可能需要为 ref 指定复杂类型的值。我们可以通过在调用 `ref` 来覆盖默认推导时传递一个范型参数来实现：
 
   ```ts
   const foo = ref<string | number>('foo') // foo's type: Ref<string | number>
@@ -283,7 +283,7 @@ If an object is assigned as a ref's value, the object is made deeply reactive by
 
 ### `computed`
 
-Takes a getter function and returns an immutable reactive ref object for the returned value from the getter.
+使用 getter 函数并返回一个不可改变的 ref 对象。
 
 ```js
 const count = ref(1)
@@ -294,15 +294,15 @@ console.log(plusOne.value) // 2
 plusOne.value++ // error
 ```
 
-Alternatively, it can take an object with `get` and `set` functions to create a writable ref object.
+或者使用 `get` 和 `set` 函数创建一个可修改的 ref 对象。
 
 ```js
 const count = ref(1)
 const plusOne = computed({
   get: () => count.value + 1,
-  set: val => {
+  set: (val) => {
     count.value = val - 1
-  }
+  },
 })
 
 plusOne.value = 1
@@ -324,7 +324,7 @@ console.log(count.value) // 0
 
 ### `readonly`
 
-Takes an object (reactive or plain) or a ref and returns a readonly proxy to the original. A readonly proxy is deep: any nested property accessed will be readonly as well.
+传入一个对象 （响应或普通）或 ref 并返回一个 readonly 的代理到原始对象。对于一个 readonly 的代理对象，访问任何嵌套属性都是只读。
 
 ```js
 const original = reactive({ count: 0 })
@@ -345,7 +345,7 @@ copy.count++ // warning!
 
 ### `watchEffect`
 
-Run a function immediately while reactively tracking its dependencies, and re-run it whenever the dependencies have changed.
+侦听响应依赖开始之后立即调用，并在依赖改变时触发侦听。
 
 ```js
 const count = ref(0)
@@ -361,9 +361,9 @@ setTimeout(() => {
 
 #### Stopping the Watcher
 
-When `watchEffect` is called during a component's `setup()` function or lifecycle hooks, the watcher is linked to the component's lifecycle, and will be automatically stopped when the component is unmounted.
+当 `watchEffect` 在组件的 `setup()` 函数或生命周期钩子被调用时， watcher 会被链接到该组件的生命周期，并在组件卸载时自动停止。
 
-In other cases, it returns a stop handle which can be called to explicitly stop the watcher:
+在一些情况下，也可以显示的调用返回的 stop 以停止侦听：
 
 ```js
 const stop = watchEffect(() => {
@@ -376,13 +376,14 @@ stop()
 
 #### Side Effect Invalidation
 
-Sometimes the watched effect function will perform async side effects that need to be cleaned up when it is invalidated (i.e state changed before the effects can be completed). The effect function receives an `onInvalidate` function that can be used to register a invalidation callback. The invalidation callback is called when:
+有时当无效时需要被清理时（即在完成效果之前更改 state），被侦听的函数会执行异步副作用。副作用函数接受一个 `onInvalidate` 函数用于注册一个无效回调。该回调函数会在以下情况时调用：
 
-- the effect is about to re-run
-- the watcher is stopped (i.e. when the component is unmounted if `watchEffect` is used inside `setup()` or lifecycle hooks)
+- 副作用函数重新执行
+
+- 侦听函数停止后（即当组件卸载时，如果在 `setup()` 或生命周期钩子中使用 `watchEffect`）
 
 ```js
-watchEffect(onInvalidate => {
+watchEffect((onInvalidate) => {
   const token = performAsyncOperation(id.value)
   onInvalidate(() => {
     // id has changed or watcher is stopped.
@@ -392,7 +393,7 @@ watchEffect(onInvalidate => {
 })
 ```
 
-We are registering the invalidation callback via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. It is very common for the effect function to be an async function when performing data fetching:
+我们之所以通过传递的函数注册无效回调，而不是从回调（如 React `useEffect`）返回它，是因为返回值对于异步错误处理很重要。在执行数据请求时，副作用函数通常是一个异步函数：
 
 ```js
 const data = ref(null)
@@ -401,7 +402,7 @@ watchEffect(async () => {
 })
 ```
 
-An async function implicitly returns a Promise, but the cleanup function needs to be registered immediately before the Promise resolves. In addition, Vue relies on the returned Promise to automatically handle potential errors in the Promise chain.
+一个异步函数隐式的返回 Promise，但是在 Promise resolves 之前，必须立即注册 cleanup 函数。此外，Vue 依靠返回的 Promise 来自动处理 Promise 链中的潜在错误。
 
 #### Effect Flush Timing
 
@@ -422,19 +423,19 @@ Vue's reactivity system buffers invalidated effects and flush them asynchronousl
       })
 
       return {
-        count
+        count,
       }
-    }
+    },
   }
 </script>
 ```
 
-In this example:
+在这个例子中：
 
-- The count will be logged synchronously on initial run.
-- When `count` is mutated, the callback will be called **after** the component has updated.
+- 该计数将在初始运行时同步记录。
+- 更改 count 时，将在组件**更新后**调用回调。
 
-Note the first run is executed before the component is mounted. So if you wish to access the DOM (or template refs) in a watched effect, do it in the mounted hook:
+请注意，第一次运行是在组件 mounted 之前执行的。因此，如果你希望在侦听的副作用中访问 DOM（或模板 refs），请在 mounted 钩子中进行：
 
 ```js
 onMounted(() => {
@@ -444,7 +445,7 @@ onMounted(() => {
 })
 ```
 
-In cases where a watcher effect needs to be re-run synchronously or before component updates, we can pass an additional options object with the `flush` option (default is `'post'`):
+如果侦听的副作用需要同步或在组件更新之前重新运行，我们可以传递一个拥有 `flush` 属性的对象（默认为 `'post'`）：
 
 ```js
 // fire synchronously
@@ -453,7 +454,7 @@ watchEffect(
     /* ... */
   },
   {
-    flush: 'sync'
+    flush: 'sync',
   }
 )
 
@@ -463,19 +464,19 @@ watchEffect(
     /* ... */
   },
   {
-    flush: 'pre'
+    flush: 'pre',
   }
 )
 ```
 
 #### Watcher Debugging
 
-The `onTrack` and `onTrigger` options can be used to debug a watcher's behavior.
+`onTrack` 和 `onTrigger` 选项可用于调试一个侦听的行为。
 
-- `onTrack` will be called when a reactive property or ref is tracked as a dependency
-- `onTrigger` will be called when the watcher callback is triggered by the mutation of a dependency
+- 当一个 reactive 属性或 ref 作为依赖被追踪时，将调用 `onTrack`
+- 当侦听回调因依赖项变化被触发时，将调用 `onTrigger`
 
-Both callbacks will receive a debugger event which contains information on the dependency in question. It is recommended to place a `debugger` statement in these callbacks to interactively inspect the dependency:
+这两个回调都将接收到一个包含有关所依赖项信息的 debugger 事件。建议在以下回调中编写 `debugger` 语句来检查依赖关系：
 
 ```js
 watchEffect(
@@ -485,12 +486,12 @@ watchEffect(
   {
     onTrigger(e) {
       debugger
-    }
+    },
   }
 )
 ```
 
-`onTrack` and `onTrigger` only works in development mode.
+`onTrack` 和 `onTrigger` 仅在开发模式下生效。
 
 - **Typing**
 
@@ -520,17 +521,17 @@ watchEffect(
 
 ### `watch`
 
-The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corresponding `watch` option). `watch` requires watching a specific data source, and applies side effects in a separate callback function. It also is lazy by default - i.e. the callback is only called when the watched source has changed.
+`watch` API 完全等效于 2.x `this.$watch` （以及 `watch` 中相应的选项）。`watch` 需要侦听特定的数据源，并在回调函数中执行副作用。默认情况是惰性，也就是说仅在侦听的源更改时才执行回调。
 
-- Compared to `watchEffect`, `watch` allows us to:
+- 对比 `watchEffect`，`watch` 允许我们：
 
-  - Perform the side effect lazily;
-  - Be more specific about what state should trigger the watcher to re-run;
-  - Access both the previous and current value of the watched state.
+  - 惰性的执行副作用；
+  - 更具体地说明应触发观察程序重新运行的状态；
+  - 访问监视状态变化前后的值。
 
 - **Watching a Single Source**
 
-  A watcher data source can either be a getter function that returns a value, or directly a ref:
+  侦听者的数据源头可以是一个拥有返回值的 getter 函数，也可以是 ref：
 
   ```js
   // watching a getter
@@ -551,7 +552,7 @@ The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corres
 
 - **Watching Multiple Sources**
 
-  A watcher can also watch multiple sources at the same time using an Array:
+  watcher 也可以使用数组同时侦听多个源：
 
   ```js
   watch([fooRef, barRef], ([foo, bar], [prevFoo, prevBar]) => {
@@ -559,11 +560,11 @@ The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corres
   })
   ```
 
-* **Shared Behavior with `watchEffect`**
+- **Shared Behavior with `watchEffect`**
 
   `watch` shares behavior with `watchEffect` in terms of [manual stoppage](#stopping-the-watcher), [side effect invalidation](#side-effect-invalidation) (with `onInvalidate` passed to the callback as the 3rd argument instead), [flush timing](#effect-flush-timing) and [debugging](#watcher-debugging).
 
-* **Typing**
+- **Typing**
 
   ```ts
   // wacthing single source
@@ -603,7 +604,7 @@ The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corres
 
 ## Lifecycle Hooks
 
-Lifecycle hooks can be registered with directly imported `onXXX` functions:
+可以通过导入 `onXXX` 函数来注册生命周期钩子：
 
 ```js
 import { onMounted, onUpdated, onUnmounted } from 'vue'
@@ -619,13 +620,13 @@ const MyComponent = {
     onUnmounted(() => {
       console.log('unmounted!')
     })
-  }
+  },
 }
 ```
 
-These lifecycle hook registration functions can only be used synchronously during `setup()`, since they rely on internal global state to locate the current active instance (the component instance whose `setup()` is being called right now). Calling them without a current active instance will result in an error.
+这些生命周期钩子注册函数只能在 `setup()` 期间同步使用，因为它们依赖于内部全局状态来定位当前的活动实例（当前正在调用 `setup()` 的组件实例）。在没有当前活动实例的情况下调用它们将导致错误。
 
-The component instance context is also set during the synchronous execution of lifecycle hooks, so watchers and computed properties created inside synchronously inside lifecycle hooks are also automatically tore down when the component unmounts.
+组件实例上下文也是在生命周期钩子同步执行期间设置的，因此，在卸载组件时，在生命周期钩子内部同步创建的 watchers 和 computed 属性也将自动删除。
 
 - **Mapping between 2.x Lifecycle Options and Composition API**
 
@@ -641,25 +642,25 @@ The component instance context is also set during the synchronous execution of l
 
 - **New hooks**
 
-  In addition to 2.x lifecycle equivalents, the Composition API also provides the following debug hooks:
+  除了和 2.x 生命周期等效项之外，Composition API 还提供了以下调试 hooks 函数：
 
   - `onRenderTracked`
   - `onRenderTriggered`
 
-  Both hooks receive a `DebuggerEvent` similar to the `onTrack` and `onTrigger` options for watchers:
+  两个 hooks 函数都接收一个 `DebuggerEvent`，类似于 watchers 的 `onTrack` 和 `onTrigger` 选项：
 
   ```js
   export default {
     onRenderTriggered(e) {
       debugger
       // inspect which dependency is causing the component to re-render
-    }
+    },
   }
   ```
 
 ## Dependency Injection
 
-`provide` and `inject` enables dependency injection similar to the 2.x `provide/inject` options. Both can only be called during `setup()` with a current active instance.
+`provide` 和 `inject` 功能类似 2.x 的 `provide/injext` ，允许依赖注入。两者都只能在当前活动实例的 `setup()` 中调用。
 
 ```js
 import { provide, inject } from 'vue'
@@ -669,24 +670,24 @@ const ThemeSymbol = Symbol()
 const Ancestor = {
   setup() {
     provide(ThemeSymbol, 'dark')
-  }
+  },
 }
 
 const Descendent = {
   setup() {
     const theme = inject(ThemeSymbol, 'light' /* optional default value */)
     return {
-      theme
+      theme,
     }
-  }
+  },
 }
 ```
 
-`inject` accepts an optional default value as the 2nd argument. If a default value is not provided and the property is not found on the provide context, `inject` returns `undefined`.
+`inject` 接受一个可选的默认值作为第二个参数。如果未提供默认值，并且在 provide 上下文中未找到该属性，则 `inject` 返回 `undefined`。
 
 - **Injection Reactivity**
 
-  To retain reactivity between provided and injected values, a ref can be used:
+  可以使用 ref 来保证 provided 和 injected 之间值的响应：
 
   ```js
   // in provider
@@ -700,7 +701,7 @@ const Descendent = {
   })
   ```
 
-  If a reactive object is injected, it can also be reactively observed.
+  如果注入一个响应对象，则它也可以被响应观察到。
 
 - **Typing**
 
@@ -715,7 +716,7 @@ const Descendent = {
   function inject<T>(key: InjectionKey<T> | string, defaultValue: T): T
   ```
 
-  Vue provides a `InjectionKey` interface which is a generic type that extends `Symbol`. It can be used to sync the type of the injected value between the provider and the consumer:
+  Vue 提供了一个继承 `Symbol` 的 `InjectionKey` 接口。它可用于在 provider 和 consumer 之间同步注入值的类型：
 
   ```ts
   import { InjectionKey, provide, inject } from 'vue'
@@ -727,7 +728,7 @@ const Descendent = {
   const foo = inject(key) // type of foo: string | undefined
   ```
 
-  If using string keys or non-typed symbols, the type of the injected value will need to be explicitly declared:
+  如果使用字符串作为键或 non-typed symbols，则需要显式声明注入值的类型：
 
   ```ts
   const foo = inject<string>('foo') // string | undefined
@@ -735,7 +736,7 @@ const Descendent = {
 
 ## Template Refs
 
-When using the Composition API, the concept of _reactive refs_ and _template refs_ are unified. In order to obtain a reference to an in-template element or component instance, we can declare a ref as usual and return it from `setup()`:
+当使用 Composition API 时，_reactive refs_ 和 _template refs_ 的概念是统一的。为了获得对模板内元素或组件实例的引用，我们可以像往常一样在 `setup()` 中声明一个 ref 并返回它：
 
 ```html
 <template>
@@ -755,16 +756,16 @@ When using the Composition API, the concept of _reactive refs_ and _template ref
       })
 
       return {
-        root
+        root,
       }
-    }
+    },
   }
 </script>
 ```
 
-Here we are exposing `root` on the render context and binding it to the div as its ref via `ref="root"`. In the Virtual DOM patching algorithm, if a VNode's `ref` key corresponds to a ref on the render context, then the VNode's corresponding element or component instance will be assigned to the value of that ref. This is performed during the Virtual DOM mount / patch process, so template refs will only get assigned values after the initial render.
+这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 div 作为其 ref。 在 Virtual DOM patching 算法中，如果一个 VNode 的 `ref` 键对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给对应 ref 的值。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 refs 仅在初始渲染后才能被访问。
 
-Refs used as templates refs behave just like any other refs: they are reactive and can be passed into (or returned from) composition functions.
+Refs 被用作模板引用时的行为和其他 refs 一样：它们都是响应式的，并可以传递进 composition 函数（或返回）。
 
 - **Usage with Render Function / JSX**
 
@@ -775,18 +776,18 @@ Refs used as templates refs behave just like any other refs: they are reactive a
 
       return () =>
         h('div', {
-          ref: root
+          ref: root,
         })
 
       // with JSX
       return () => <div ref={root} />
-    }
+    },
   }
   ```
 
 - **Usage inside `v-for`**
 
-  Composition API template refs do not have special handling when used inside `v-for`. Instead, use function refs (new feature in 3.0) to perform custom handling:
+  当在 `v-for` 中使用时，Composition API 模板 refs 没有特殊处理。而是使用 refs 函数（3.0 中的新功能）执行自定义的处理：
 
   ```html
   <template>
@@ -810,9 +811,9 @@ Refs used as templates refs behave just like any other refs: they are reactive a
 
         return {
           list,
-          divs
+          divs,
         }
-      }
+      },
     }
   </script>
   ```
@@ -821,7 +822,7 @@ Refs used as templates refs behave just like any other refs: they are reactive a
 
 ### `unref`
 
-Returns the inner value if the argument is a ref, otherwise return the argument itself. This is a sugar function for `val = isRef(val) ? val.value : val`.
+如果参数是一个 ref 则返回它的 value，否则返回参数本身。它是 `val = isRef(val) ? val.value : val` 的语法糖。
 
 ```js
 function useFoo(x: number | Ref<number>) {
@@ -831,12 +832,12 @@ function useFoo(x: number | Ref<number>) {
 
 ### `toRef`
 
-`toRef` can be used to create a ref for a property on a source reactive object. The ref can then be passed around and retains the reactive connection to its source property.
+`toRef` 可以用来为一个 reactive 对象的属性创建一个 ref。这个 ref 可以被传递并且保留与其源引用的响应。
 
 ```js
 const state = reactive({
   foo: 1,
-  bar: 2
+  bar: 2,
 })
 
 const fooRef = toRef(state, 'foo')
@@ -848,24 +849,24 @@ state.foo++
 console.log(fooRef.value) // 3
 ```
 
-`toRef` is useful when you want to pass the ref of a prop to a composition function:
+当您要将一个 prop 的 ref 传递给 composition 函数时，`toRef` 很有用：
 
 ```js
 export default {
   setup(props) {
     useSomeFeature(toRef(props, 'foo'))
-  }
+  },
 }
 ```
 
 ### `toRefs`
 
-Convert a reactive object to a plain object, where each property on the resulting object is a ref pointing to the corresponding property in the original object.
+将一个 reactive 对象转换成一个普通对象，其中返回结果中的每个属性都是一个指向原始对象对应属性的 ref。
 
 ```js
 const state = reactive({
   foo: 1,
-  bar: 2
+  bar: 2,
 })
 
 const stateAsRefs = toRefs(state)
@@ -892,7 +893,7 @@ console.log(state.foo) // 3
 function useFeatureX() {
   const state = reactive({
     foo: 1,
-    bar: 2
+    bar: 2,
   })
 
   // logic operating on state
@@ -908,29 +909,29 @@ export default {
 
     return {
       foo,
-      bar
+      bar,
     }
-  }
+  },
 }
 ```
 
 ### `isRef`
 
-Check if a value is a ref object.
+检查一个值是否为一个 ref 对象。
 
 ### `isProxy`
 
-Check if an object is a proxy created by `reactive` or `readonly`.
+检查一个 proxy 对象是由 `reactive` 还是 `readonly` 创建的。
 
 ### `isReactive`
 
-Check if an object is a reactive proxy created by `reactive`.
+检查一个对象是否是由 `reactive` 创建的 reactive proxy。
 
-It also returns `true` if the proxy is created by `readonly`, but is wrapping another proxy created by `reactive`.
+如果 proxy 是由 `readonly` 创建的，但是被包装成由 `reactive` 创建的另一个 proxy，则返回 true。
 
 ### `isReadonly`
 
-Check if an object is a readonly proxy created by `readonly`.
+检查一个对象是否是由 `readonly` 创建的只读代理。
 
 ## Advanced Reactivity APIs
 
@@ -943,6 +944,7 @@ Create a customized ref with explicit control over its dependency tracking and u
   ```html
   <input v-model="text" />
   ```
+
   ```js
   function useDebouncedRef(value, delay = 200) {
     let timeout
@@ -958,7 +960,7 @@ Create a customized ref with explicit control over its dependency tracking and u
             value = newValue
             trigger()
           }, delay)
-        }
+        },
       }
     })
   }
@@ -966,9 +968,9 @@ Create a customized ref with explicit control over its dependency tracking and u
   export default {
     setup() {
       return {
-        text: useDebouncedRef('hello')
+        text: useDebouncedRef('hello'),
       }
-    }
+    },
   }
   ```
 
@@ -1010,12 +1012,12 @@ They are considered advanced because the raw opt-out is only at the root level, 
 
 ```js
 const foo = markRaw({
-  nested: {}
+  nested: {},
 })
 
 const bar = reactive({
   // although `foo` is marked as raw, foo.nested is not.
-  nested: foo.nested
+  nested: foo.nested,
 })
 
 console.log(foo.nested === bar.nested) // false
@@ -1032,8 +1034,8 @@ Create a reactive proxy that tracks reactivity of its own properties, but does n
 const state = shallowReactive({
   foo: 1,
   nested: {
-    bar: 2
-  }
+    bar: 2,
+  },
 })
 
 // mutating state's own properties is reactive
@@ -1051,8 +1053,8 @@ Create a proxy that makes its own properties readonly, but does not perform deep
 const state = shallowReadonly({
   foo: 1,
   nested: {
-    bar: 2
-  }
+    bar: 2,
+  },
 })
 
 // mutating state's own properties will fail
