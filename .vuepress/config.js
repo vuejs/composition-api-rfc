@@ -10,7 +10,7 @@ module.exports = {
       },
       '/zh/': {
         nav: [
-          { text: '提案介绍', link: '/zh/' },
+          { text: '征求意见稿', link: '/zh/' },
           { text: 'API 参考', link: '/zh/api/' }
         ],
       },
@@ -24,7 +24,7 @@ module.exports = {
     },
     '/zh/': {
       lang: '中文',
-      title: 'Vue 组合式 API 提案',
+      title: 'Vue 组合式 API',
     }
   }
 }
