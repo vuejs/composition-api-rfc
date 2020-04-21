@@ -13,11 +13,11 @@ sidebarDepth: 2
 
 `setup` 函数是一个新的组件选项。作为在组件内使用 Composition API 的入口点。
 
-- **Invocation Timing**
+- **何时调用？**
 
   在组件实例创建时，`setup` 会在初始化 props 后立即调用。从生命周期来看，它会在 `beforeCreate` 前被调用。
 
-- **Usage with Templates**
+- **与模板一起使用时的注意事项**
 
   如果 `setup` 返回一个对象，则对象的属性将会被合并到组件模板的渲染上下文：
 
@@ -46,7 +46,7 @@ sidebarDepth: 2
 
   注意 `setup` 返回的 refs 在模板中访问时会自动解构，因此在模板中使用时不需要 `.value`。
 
-- **Usage with Render Functions / JSX**
+- **配合 render 函数 / JSX 的用法**
 
   `setup` 也可以返回一个能使用同作用域下 reactive 状态的渲染函数：
 
@@ -63,7 +63,7 @@ sidebarDepth: 2
   }
   ```
 
-- **Arguments**
+- **参数**
 
   该函数接收 props 作为其第一个参数：
 
@@ -139,21 +139,34 @@ sidebarDepth: 2
 
   - 组件使用 `props` 的场景更多，有时候甚至只使用 `props`
 
-  - Having `props` as a separate argument makes it easier to type it individually (see [TypeScript-only Props Typing](#typescript-only-props-typing) below) without messing up the types of other properties on the context. It also makes it possible to keep a consistent signature across `setup`, `render` and plain functional components with TSX support.
+  - 将 `props` 独立出来作为第一个参数，是为了让 TypeScript 对 props 有更好对类型推导，不会和上下文中的其他属性 without messing up the types of other properties on the context. It also makes it possible to keep a consistent signature across `setup`, `render` and plain functional components with TSX support.
 
 - **Usage of `this`**
 
-  **`this` 在 `setup()` 中不可用。** 由于 `setup()` 在解析 2.x 选项前被调用，`setup()` 中的 `this` 将与 2.X 选项中的 `this` 完全不同。同时在 `setup()` 和 2.x 选项中使用 `this` 时将造成混乱。在 `setup()` 中避免这种情况的另一个原因是这对于初学者来说非常常见的陷阱：
+  **`this` 在 `setup()` 中不可用。** 由于 `setup()` 在解析 2.x 选项前被调用，`setup()` 中的 `this` 将与 2.X 选项中的 `this` 完全不同。同时在 `setup()` 和 2.x 选项中使用 `this` 时将造成混乱。在 `setup()` 中避免这种情况的另一个原因是：这对于初学者来说可能并没有完全弄清楚 `this` 当时所代表的含义从而导致出错：
 
   ```js
   setup() {
     function onClick() {
-      this // not the `this` you'd expect!
+      this // 这里 `this` 不是你想要的意思！
     }
+    /*
+      JavaScript this 关键词指的是它所属的对象。
+
+      它拥有不同的值，具体取决于它的使用位置：
+
+      - 在方法中，this 指的是所有者对象。
+      - 单独的情况下，this 指的是全局对象。
+      - 在函数中，this 指的是全局对象。
+      - 在函数中，严格模式下，this 是 undefined。
+      - 在事件中，this 指的是接收事件的元素。
+
+      像 call() 和 apply() 这样的方法可以将 this 引用到任何对象。
+    */
   }
   ```
 
-- **Typing**
+- **类型定义**
 
   ```ts
   interface Data {
@@ -173,7 +186,7 @@ sidebarDepth: 2
   为了获得传递给 `setup()` 参数的类型推断，需要使用 [`defineComponent`](#defineComponent)。
   :::
 
-## Reactivity APIs
+## 响应式系统相关 API
 
 ### `reactive`
 
@@ -183,9 +196,9 @@ sidebarDepth: 2
 const obj = reactive({ count: 0 })
 ```
 
-响应式转换是"深度的"：它影响所有嵌套的属性。基于 ES2015 代理实现，返回的代理对象 **不等于** 原始对象。建议仅使用代理对象而避免依赖原始对象。
+响应式转换是 “深层递归”：它影响所有内部的属性。基于 ES2015 的 Proxy 代理实现，返回的代理对象 **不等于** 原始对象。我们建议 **仅使用代理对象** 而避免依赖原始对象。
 
-- **Typing**
+- **类型定义**
 
   ```ts
   function reactive<T extends object>(raw: T): T
@@ -203,11 +216,11 @@ count.value++
 console.log(count.value) // 1
 ```
 
-如果传入 ref 一个对象，将调用 `reactive` 方法进行深度响应转换。
+如果传入 ref 的是一个对象，将调用 `reactive` 方法进行深度响应转换。
 
-- **Access in Templates**
+- **在模板中访问**
 
-  当 ref 作为渲染上下文返回（`setup()` 返回的对象）并在模板中使用时，它会自动解构，无需在模板内添加 `.value`：
+  当 ref 作为渲染上下文返回（`setup()` 返回的对象）并在模板中使用时，它会自动解套，无需在模板内额外书写 `.value`：
 
   ```html
   <template>
@@ -225,9 +238,9 @@ console.log(count.value) // 1
   </script>
   ```
 
-- **Access in Reactive Objects**
+- **作为响应式对象的属性访问**
 
-  当 ref 作为 reactive 对象的属性被访问或修改时，将自动解构 value 值，其行为类似普通属性：
+  当 ref 作为 reactive 对象的属性被访问或修改时，也将自动解套 value 值，其行为类似普通属性：
 
   ```js
   const count = ref(0)
@@ -251,19 +264,19 @@ console.log(count.value) // 1
   console.log(count.value) // 1
   ```
 
-  注意当嵌套在 reactive `Object` 中时，ref 才会解构。从 `Array` 或诸如 `Map` 的 collection 中访问 ref 时，不会自动解构：
+  注意当嵌套在响应式 `Object` 中时，ref 才会解套。从 `Array` 或诸如 `Map` 等原生集合类中访问 ref 时，不会自动解套：
 
   ```js
   const arr = reactive([ref(0)])
-  // need .value here
+  // 这里需要写 .value
   console.log(arr[0].value)
 
   const map = reactive(new Map([['foo', ref(0)]]))
-  // need .value here
+  // 这里需要写 .value
   console.log(map.get('foo').value)
   ```
 
-- **Typing**
+- **类型定义**
 
   ```ts
   interface Ref<T> {
@@ -273,17 +286,17 @@ console.log(count.value) // 1
   function ref<T>(value: T): Ref<T>
   ```
 
-  有时我们可能需要为 ref 指定复杂类型的值。我们可以通过在调用 `ref` 来覆盖默认推导时传递一个范型参数来实现：
+  有时我们可能需要为 ref 做一个较为复杂的类型标注。我们可以通过在调用 `ref` 时传递泛型参数来覆盖根据所赋的值作出的默认推导：
 
   ```ts
-  const foo = ref<string | number>('foo') // foo's type: Ref<string | number>
+  const foo = ref<string | number>('foo') // foo 的类型: Ref<string | number>
 
-  foo.value = 123 // ok!
+  foo.value = 123 // 能够通过！
   ```
 
 ### `computed`
 
-使用 getter 函数并返回一个不可改变的 ref 对象。
+传入一个句柄函数，并返回一个默认不可手动修改的 ref 对象。
 
 ```js
 const count = ref(1)
@@ -291,10 +304,10 @@ const plusOne = computed(() => count.value + 1)
 
 console.log(plusOne.value) // 2
 
-plusOne.value++ // error
+plusOne.value++ // 错误！
 ```
 
-或者使用 `get` 和 `set` 函数创建一个可修改的 ref 对象。
+或者使用 `get` 和 `set` 函数创建一个可手动修改的计算属性。
 
 ```js
 const count = ref(1)
@@ -309,13 +322,13 @@ plusOne.value = 1
 console.log(count.value) // 0
 ```
 
-- **Typing**
+- **类型定义**
 
   ```ts
-  // read-only
+  // 只读的
   function computed<T>(getter: () => T): Readonly<Ref<Readonly<T>>>
 
-  // writable
+  // 可更改的
   function computed<T>(options: {
     get: () => T
     set: (value: T) => void
@@ -324,7 +337,7 @@ console.log(count.value) // 0
 
 ### `readonly`
 
-传入一个对象 （响应或普通）或 ref 并返回一个 readonly 的代理到原始对象。对于一个 readonly 的代理对象，访问任何嵌套属性都是只读。
+传入一个对象（响应式或普通皆可）或 响应式值引用 ref 并返回一个 **只读** 的代理到原始对象。对于一个只读的代理对象，访问任何内部更深层的属性也都是只读的。
 
 ```js
 const original = reactive({ count: 0 })
@@ -332,38 +345,38 @@ const original = reactive({ count: 0 })
 const copy = readonly(original)
 
 watchEffect(() => {
-  // works for reactivity tracking
+  // 在这里会完成依赖追踪
   console.log(copy.count)
 })
 
-// mutating original will trigger watchers relying on the copy
+// original 上的修改同样会触动依赖于它的 copy 相关的响应
 original.count++
 
-// mutating the copy will fail and result in a warning
+// 无法修改 copy 并且会被警告提示
 copy.count++ // warning!
 ```
 
 ### `watchEffect`
 
-侦听响应依赖开始之后立即调用，并在依赖改变时触发侦听。
+监听响应依赖开始之后，其句柄函数立即调用，并在其依赖改变时触发响应。
 
 ```js
 const count = ref(0)
 
 watchEffect(() => console.log(count.value))
-// -> logs 0
+// -> 打印出 0
 
 setTimeout(() => {
   count.value++
-  // -> logs 1
+  // -> 打印出 1
 }, 100)
 ```
 
-#### Stopping the Watcher
+#### 手动停止监听
 
-当 `watchEffect` 在组件的 `setup()` 函数或生命周期钩子被调用时， watcher 会被链接到该组件的生命周期，并在组件卸载时自动停止。
+当 `watchEffect` 在组件的 `setup()` 函数或生命周期钩子被调用时， watcher 监听器会被链接到该组件的生命周期，并在组件卸载时自动停止。
 
-在一些情况下，也可以显示的调用返回的 stop 以停止侦听：
+在一些情况下，也可以显式的调用返回的 stop 以停止监听：
 
 ```js
 const stop = watchEffect(() => {
@@ -374,26 +387,26 @@ const stop = watchEffect(() => {
 stop()
 ```
 
-#### Side Effect Invalidation
+#### 清除被动响应
 
-有时当无效时需要被清理时（即在完成效果之前更改 state），被侦听的函数会执行异步副作用。副作用函数接受一个 `onInvalidate` 函数用于注册一个无效回调。该回调函数会在以下情况时调用：
+有时被动响应的句柄函数会执行一些异步的被动响应, 这些响应需要在其失效时清除（即完成之前状态已改变了）。所以监听者的回调函数可以接收一个 `onInvalidate` 函数入参, 用来注册清理该响应的回调函数。当以下情况发生时，这个 **清理回调** 会被触发:
 
-- 副作用函数重新执行
+- 监听回调即将重新调用时
 
-- 侦听函数停止后（即当组件卸载时，如果在 `setup()` 或生命周期钩子中使用 `watchEffect`）
+- 停止监听时 (如果在 `setup()` 或 生命周期钩子函数中使用了 `watchEffect`, 则在卸载组件时)
 
 ```js
 watchEffect((onInvalidate) => {
   const token = performAsyncOperation(id.value)
   onInvalidate(() => {
-    // id has changed or watcher is stopped.
-    // invalidate previously pending async operation
+    // id 改变时 或 停止监听时
+    // 取消之前的异步操作
     token.cancel()
   })
 })
 ```
 
-我们之所以通过传递的函数注册无效回调，而不是从回调（如 React `useEffect`）返回它，是因为返回值对于异步错误处理很重要。在执行数据请求时，副作用函数通常是一个异步函数：
+我们之所以是通过传递函数去注册 “清理回调”，而不是从回调返回它（如 React `useEffect` 中的方式），是因为返回值对于异步错误处理很重要。在执行数据请求时，响应的句柄函数往往是一个异步函数：
 
 ```js
 const data = ref(null)
@@ -402,11 +415,11 @@ watchEffect(async () => {
 })
 ```
 
-一个异步函数隐式的返回 Promise，但是在 Promise resolves 之前，必须立即注册 cleanup 函数。此外，Vue 依靠返回的 Promise 来自动处理 Promise 链中的潜在错误。
+我们知道 async function 都会隐性地返回一个 Promise，这样的情况下, 我们是无法返回一个需要被立刻注册的 “清理回调” 的。除此之外，回调返回的 Promise 还会被 Vue 用于内部的异步错误处理。
 
-#### Effect Flush Timing
+#### 响应句柄刷新时间
 
-Vue's reactivity system buffers invalidated effects and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watched effect. When a user effect is queued, it is always invoked after all component update effects:
+Vue 的响应式系统会缓存被动响应的句柄函数，并异步地刷新它们, 这样可以避免同一个 "tick" 中多个状态改变导致的不必要的重复调用。在核心的具体实现中, 组件的更新函数也是一个响应的句柄函数. 当一个句柄函数进入队列时, 会在所有的组件的 render 函数之后执行:
 
 ```html
 <template>
@@ -432,23 +445,23 @@ Vue's reactivity system buffers invalidated effects and flush them asynchronousl
 
 在这个例子中：
 
-- 该计数将在初始运行时同步记录。
-- 更改 count 时，将在组件**更新后**调用回调。
+- `count` 会在初始运行时同步打印出来
+- 更改 `count` 时，将在组件 **更新后** 执行响应句柄。
 
-请注意，第一次运行是在组件 mounted 之前执行的。因此，如果你希望在侦听的副作用中访问 DOM（或模板 refs），请在 mounted 钩子中进行：
+请注意，初始化运行是在组件 `mounted` 之前执行的。因此，如果你希望在编写被动响应的句柄时访问 DOM（或模板中的 ref），请在 `onMounted` 钩子中进行：
 
 ```js
 onMounted(() => {
   watchEffect(() => {
-    // access the DOM or template refs
+    // 在这里可以访问到 DOM 或者 template refs
   })
 })
 ```
 
-如果侦听的副作用需要同步或在组件更新之前重新运行，我们可以传递一个拥有 `flush` 属性的对象（默认为 `'post'`）：
+如果被动响应需要同步或在组件更新之前重新运行，我们可以传递一个拥有 `flush` 属性的对象作为选项（默认为 `'post'`）：
 
 ```js
-// fire synchronously
+// 同步运行
 watchEffect(
   () => {
     /* ... */
@@ -458,7 +471,7 @@ watchEffect(
   }
 )
 
-// fire before component updates
+// 组件更新前执行
 watchEffect(
   () => {
     /* ... */
@@ -469,19 +482,20 @@ watchEffect(
 )
 ```
 
-#### Watcher Debugging
+#### 监听器调试
 
-`onTrack` 和 `onTrigger` 选项可用于调试一个侦听的行为。
+`onTrack` 和 `onTrigger` 选项可用于调试一个监听的行为。
 
-- 当一个 reactive 属性或 ref 作为依赖被追踪时，将调用 `onTrack`
-- 当侦听回调因依赖项变化被触发时，将调用 `onTrigger`
+- 当一个 reactive 响应式对象属性或 ref 响应式值引用作为依赖被追踪时，将调用 `onTrack`
 
-这两个回调都将接收到一个包含有关所依赖项信息的 debugger 事件。建议在以下回调中编写 `debugger` 语句来检查依赖关系：
+- 当监听回调因依赖项变化被触发时，将调用 `onTrigger`
+
+这两个回调都将接收到一个包含有关所依赖项信息的调试器事件。建议在以下回调中编写 `debugger` 语句来检查依赖关系：
 
 ```js
 watchEffect(
   () => {
-    /* side effect */
+    /* 被动响应的内容 */
   },
   {
     onTrigger(e) {
@@ -491,9 +505,9 @@ watchEffect(
 )
 ```
 
-`onTrack` 和 `onTrigger` 仅在开发模式下生效。
+**`onTrack` 和 `onTrigger` 仅在开发模式下生效。**
 
-- **Typing**
+- **类型定义**
 
   ```ts
   function watchEffect(
@@ -521,20 +535,20 @@ watchEffect(
 
 ### `watch`
 
-`watch` API 完全等效于 2.x `this.$watch` （以及 `watch` 中相应的选项）。`watch` 需要侦听特定的数据源，并在回调函数中执行副作用。默认情况是惰性，也就是说仅在侦听的源更改时才执行回调。
+`watch` API 完全等效于 2.x `this.$watch` （以及 `watch` 中相应的选项）。`watch` 需要监听特定的数据源，并在回调函数中执行副作用。默认情况是懒执行的，也就是说仅在监听的源更改时才执行回调。
 
 - 对比 `watchEffect`，`watch` 允许我们：
 
-  - 惰性的执行副作用；
+  - 懒执行的被动响应；
   - 更具体地说明应触发观察程序重新运行的状态；
   - 访问监视状态变化前后的值。
 
-- **Watching a Single Source**
+- **监听单个数据源**
 
-  侦听者的数据源头可以是一个拥有返回值的 getter 函数，也可以是 ref：
+  监听者的数据源头可以是一个拥有返回值的 getter 函数，也可以是 ref：
 
   ```js
-  // watching a getter
+  // 监听一个 getter
   const state = reactive({ count: 0 })
   watch(
     () => state.count,
@@ -543,16 +557,16 @@ watchEffect(
     }
   )
 
-  // directly watching a ref
+  // 直接监听一个 ref
   const count = ref(0)
   watch(count, (count, prevCount) => {
     /* ... */
   })
   ```
 
-- **Watching Multiple Sources**
+- **监听多个数据源**
 
-  watcher 也可以使用数组同时侦听多个源：
+  `watcher` 也可以使用数组来同时监听多个源：
 
   ```js
   watch([fooRef, barRef], ([foo, bar], [prevFoo, prevBar]) => {
@@ -560,14 +574,14 @@ watchEffect(
   })
   ```
 
-- **Shared Behavior with `watchEffect`**
+- **与 `watchEffect` 共享的行为**
 
-  `watch` shares behavior with `watchEffect` in terms of [manual stoppage](#stopping-the-watcher), [side effect invalidation](#side-effect-invalidation) (with `onInvalidate` passed to the callback as the 3rd argument instead), [flush timing](#effect-flush-timing) and [debugging](#watcher-debugging).
+  watch 和 watchEffect 在 [停止监听](#手动停止监听), [清除被动响应](#清除被动响应) (`onInvalidate` 回调入参会作为第三个参数传入)，[响应句柄刷新时间](#响应句柄刷新时间) 和 [监听器调试](#监听器调试) 等方面行为一致.
 
-- **Typing**
+- **类型定义**
 
   ```ts
-  // wacthing single source
+  // 监听单数据源
   function watch<T>(
     source: WatcherSource<T>,
     callback: (
@@ -578,7 +592,7 @@ watchEffect(
     options?: WatchOptions
   ): StopHandle
 
-  // watching multiple sources
+  // 监听多数据源
   function watch<T extends WatcherSource<unknown>[]>(
     sources: T
     callback: (
@@ -595,16 +609,16 @@ watchEffect(
     [K in keyof T]: T[K] extends WatcherSource<infer V> ? V : never
   }
 
-  // see `watchEffect` typing for shared options
+  // 共有的属性 请查看 `watchEffect` 的类型定义
   interface WatchOptions extends WatchEffectOptions {
     immediate?: boolean // default: false
     deep?: boolean
   }
   ```
 
-## Lifecycle Hooks
+## 生命周期钩子函数
 
-可以通过导入 `onXXX` 函数来注册生命周期钩子：
+可以通过导入 `onXXX` 一族的函数来注册生命周期钩子：
 
 ```js
 import { onMounted, onUpdated, onUnmounted } from 'vue'
@@ -624,11 +638,11 @@ const MyComponent = {
 }
 ```
 
-这些生命周期钩子注册函数只能在 `setup()` 期间同步使用，因为它们依赖于内部全局状态来定位当前的活动实例（当前正在调用 `setup()` 的组件实例）。在没有当前活动实例的情况下调用它们将导致错误。
+这些生命周期钩子注册函数只能在 `setup()` 期间同步使用， 因为它们依赖于内部的全局状态来定位当前组件实例（正在调用 `setup()` 的组件实例）, 不在当前组件下调用这些函数会抛出一个错误。
 
-组件实例上下文也是在生命周期钩子同步执行期间设置的，因此，在卸载组件时，在生命周期钩子内部同步创建的 watchers 和 computed 属性也将自动删除。
+组件实例上下文也是在生命周期钩子同步执行期间设置的，因此，在卸载组件时，在生命周期钩子内部同步创建的 watchers 和 computed 计算属性也将自动删除。
 
-- **Mapping between 2.x Lifecycle Options and Composition API**
+- **与 2.x 版本生命周期相对应的 Composition API**
 
   - ~~`beforeCreate`~~ -> use `setup()`
   - ~~`created`~~ -> use `setup()`
@@ -640,27 +654,27 @@ const MyComponent = {
   - `destroyed` -> `onUnmounted`
   - `errorCaptured` -> `onErrorCaptured`
 
-- **New hooks**
+- **新增的钩子函数**
 
-  除了和 2.x 生命周期等效项之外，Composition API 还提供了以下调试 hooks 函数：
+  除了和 2.x 生命周期等效项之外，Composition API 还提供了以下调试钩子函数：
 
   - `onRenderTracked`
   - `onRenderTriggered`
 
-  两个 hooks 函数都接收一个 `DebuggerEvent`，类似于 watchers 的 `onTrack` 和 `onTrigger` 选项：
+  两个钩子函数都接收一个 `DebuggerEvent`，这个参数跟 `watchEffect` 第二个参数 options 中的 onTrack 和 onTrigger 一样:：
 
   ```js
   export default {
     onRenderTriggered(e) {
       debugger
-      // inspect which dependency is causing the component to re-render
+      // 检查哪个依赖性导致组件重新渲染
     },
   }
   ```
 
-## Dependency Injection
+## 依赖注入
 
-`provide` 和 `inject` 功能类似 2.x 的 `provide/injext` ，允许依赖注入。两者都只能在当前活动实例的 `setup()` 中调用。
+`provide` 和 `inject` 功能类似 2.x 的 `provide/inject` ，提供依赖注入。两者都只能在当前活动组件实例的 `setup()` 中调用。
 
 ```js
 import { provide, inject } from 'vue'
@@ -683,36 +697,36 @@ const Descendent = {
 }
 ```
 
-`inject` 接受一个可选的默认值作为第二个参数。如果未提供默认值，并且在 provide 上下文中未找到该属性，则 `inject` 返回 `undefined`。
+`inject` 接受一个可缺省的默认值作为第二个参数。如果未提供默认值，并且在 provide 上下文中未找到该属性，则 `inject` 返回 `undefined`。
 
 - **Injection Reactivity**
 
   可以使用 ref 来保证 provided 和 injected 之间值的响应：
 
   ```js
-  // in provider
+  // 提供者：
   const themeRef = ref('dark')
   provide(ThemeSymbol, themeRef)
 
-  // in consumer
+  // 使用者：
   const theme = inject(ThemeSymbol, ref('light'))
   watchEffect(() => {
     console.log(`theme set to: ${theme.value}`)
   })
   ```
 
-  如果注入一个响应对象，则它也可以被响应观察到。
+  如果注入一个响应式对象，则它的状态变化也可以被监听。
 
-- **Typing**
+- **类型定义**
 
   ```ts
   interface InjectionKey<T> extends Symbol {}
 
   function provide<T>(key: InjectionKey<T> | string, value: T): void
 
-  // without default value
+  // 未传，使用缺省值
   function inject<T>(key: InjectionKey<T> | string): T | undefined
-  // with default value
+  // 传入了默认值
   function inject<T>(key: InjectionKey<T> | string, defaultValue: T): T
   ```
 
@@ -723,20 +737,20 @@ const Descendent = {
 
   const key: InjectionKey<string> = Symbol()
 
-  provide(key, 'foo') // providing non-string value will result in error
+  provide(key, 'foo') // 类型不是 string 则会报错
 
-  const foo = inject(key) // type of foo: string | undefined
+  const foo = inject(key) // foo 的类型: string | undefined
   ```
 
-  如果使用字符串作为键或 non-typed symbols，则需要显式声明注入值的类型：
+  如果使用字符串作为键或没有定义类型的符号，则需要显式声明注入值的类型：
 
   ```ts
   const foo = inject<string>('foo') // string | undefined
   ```
 
-## Template Refs
+## 模板中的 Ref
 
-当使用 Composition API 时，_reactive refs_ 和 _template refs_ 的概念是统一的。为了获得对模板内元素或组件实例的引用，我们可以像往常一样在 `setup()` 中声明一个 ref 并返回它：
+当使用组合式 API 时，_reactive refs_ 和 _template refs_ 的概念已经是统一的。为了获得对模板内元素或组件实例的引用，我们可以像往常一样在 `setup()` 中声明一个 ref 并返回它：
 
 ```html
 <template>
@@ -751,7 +765,7 @@ const Descendent = {
       const root = ref(null)
 
       onMounted(() => {
-        // the DOM element will be assigned to the ref after initial render
+        // 在渲染完成后, 这个 div DOM 会被赋值给 root ref 对象
         console.log(root.value) // <div/>
       })
 
@@ -763,11 +777,11 @@ const Descendent = {
 </script>
 ```
 
-这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 div 作为其 ref。 在 Virtual DOM patching 算法中，如果一个 VNode 的 `ref` 键对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给对应 ref 的值。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 refs 仅在初始渲染后才能被访问。
+这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM 对比匹配算法中，如果一个 VNode 的 `ref` 键对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给对应 ref 的值。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 refs 仅在初始渲染后才能被访问。
 
-Refs 被用作模板引用时的行为和其他 refs 一样：它们都是响应式的，并可以传递进 composition 函数（或返回）。
+ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应式的，并可以传递进组合逻辑函数（或返回）。
 
-- **Usage with Render Function / JSX**
+- **配合 render 函数 / JSX 的用法**
 
   ```js
   export default {
@@ -779,15 +793,15 @@ Refs 被用作模板引用时的行为和其他 refs 一样：它们都是响应
           ref: root,
         })
 
-      // with JSX
+      // 使用 JSX
       return () => <div ref={root} />
     },
   }
   ```
 
-- **Usage inside `v-for`**
+- **在 `v-for` 中使用**
 
-  当在 `v-for` 中使用时，Composition API 模板 refs 没有特殊处理。而是使用 refs 函数（3.0 中的新功能）执行自定义的处理：
+  `template refs` 在 `v-for` 中，需要使用 **函数型的 `ref`**（3.0 提供的新功能）来自定义处理方式：
 
   ```html
   <template>
@@ -818,7 +832,7 @@ Refs 被用作模板引用时的行为和其他 refs 一样：它们都是响应
   </script>
   ```
 
-## Reactivity Utilities
+## 响应式系统常用方法
 
 ### `unref`
 
@@ -826,13 +840,13 @@ Refs 被用作模板引用时的行为和其他 refs 一样：它们都是响应
 
 ```js
 function useFoo(x: number | Ref<number>) {
-  const unwrapped = unref(x) // unwrapped is guaranteed to be number now
+  const unwrapped = unref(x) // unwrapped 一定是 number 类型
 }
 ```
 
 ### `toRef`
 
-`toRef` 可以用来为一个 reactive 对象的属性创建一个 ref。这个 ref 可以被传递并且保留与其源引用的响应。
+`toRef` 可以用来为一个 reactive 对象的属性创建一个 ref。这个 ref 可以被传递并且能够保持响应性。
 
 ```js
 const state = reactive({
@@ -849,7 +863,7 @@ state.foo++
 console.log(fooRef.value) // 3
 ```
 
-当您要将一个 prop 的 ref 传递给 composition 函数时，`toRef` 很有用：
+当您要将一个 prop 中的属性作为 ref 传给组合逻辑函数时，`toRef` 就派上了用场：
 
 ```js
 export default {
@@ -861,7 +875,7 @@ export default {
 
 ### `toRefs`
 
-将一个 reactive 对象转换成一个普通对象，其中返回结果中的每个属性都是一个指向原始对象对应属性的 ref。
+传入一个响应式对象, 返回所有属性被转换成 ref 对象的普通对象:
 
 ```js
 const state = reactive({
@@ -871,7 +885,7 @@ const state = reactive({
 
 const stateAsRefs = toRefs(state)
 /*
-Type of stateAsRefs:
+stateAsRefs 的类型如下:
 
 {
   foo: Ref<number>,
@@ -879,7 +893,7 @@ Type of stateAsRefs:
 }
 */
 
-// The ref and the original property is "linked"
+// ref 对象 与 原属性的引用是 "链接" 上的
 state.foo++
 console.log(stateAsRefs.foo) // 2
 
@@ -887,7 +901,7 @@ stateAsRefs.foo.value++
 console.log(state.foo) // 3
 ```
 
-`toRefs` is useful when returning a reactive object from a composition function so that the consuming component can destructure / spread the returned object without losing reactivity:
+当想要从一个组合逻辑函数中返回响应式对象时，用 `toRefs` 是很有效的，因此例子中假设的这个组件可以 解构 / 扩展（使用 `...` 操作符）返回的对象，并不会丢失响应性：
 
 ```js
 function useFeatureX() {
@@ -896,15 +910,15 @@ function useFeatureX() {
     bar: 2,
   })
 
-  // logic operating on state
+  // 对 state 的逻辑操作
 
-  // convert to refs when returning
+  // 返回时将属性都转为 ref
   return toRefs(state)
 }
 
 export default {
   setup() {
-    // can destructure without losing reactivity
+    // 可以结构，不会丢失响应性
     const { foo, bar } = useFeatureX()
 
     return {
@@ -921,25 +935,25 @@ export default {
 
 ### `isProxy`
 
-检查一个 proxy 对象是由 `reactive` 还是 `readonly` 创建的。
+检查一个 proxy 对象是否是由 `reactive` 还是 `readonly` 方法创建的。
 
 ### `isReactive`
 
-检查一个对象是否是由 `reactive` 创建的 reactive proxy。
+检查一个对象是否是由 `reactive` 创建的响应式代理对象。
 
-如果 proxy 是由 `readonly` 创建的，但是被包装成由 `reactive` 创建的另一个 proxy，则返回 true。
+如果这个代理是由 `readonly` 创建的，但是又被 `reactive` 创建的另一个代理包裹了一层，那么同样也会返回 `true`。
 
 ### `isReadonly`
 
 检查一个对象是否是由 `readonly` 创建的只读代理。
 
-## Advanced Reactivity APIs
+## 更高级的响应式系统 API
 
 ### `customRef`
 
-Create a customized ref with explicit control over its dependency tracking and update triggering. It expects a factory function. The factory function receives `track` and `trigger` functions as arguments and should return an object with `get` and `set`.
+`customRef` 用于自定义一个 `ref`，需要显式地指出如何控制依赖追踪（`track()`）和如何触发响应（`trigger`），接受一个工厂函数，两个参数分别是用于追踪的 `track` 与用于触发响应的 `trigger`，并返回一个一个带有 `get` 和 `set` 属性的对象
 
-- Example using a custom ref to implement debounce with `v-model`:
+- 这里给出了一个如何用来做 `v-model` 防抖的例子：
 
   ```html
   <input v-model="text" />
@@ -974,7 +988,7 @@ Create a customized ref with explicit control over its dependency tracking and u
   }
   ```
 
-- **Typing**
+- **类型定义**
 
   ```ts
   function customRef<T>(factory: CustomRefFactory<T>): Ref<T>
@@ -990,25 +1004,25 @@ Create a customized ref with explicit control over its dependency tracking and u
 
 ### `markRaw`
 
-Mark an object so that it will never be converted to a proxy. Returns the object itself.
+显式标记一个对象为 “永远不会转为响应式代理”，函数返回这个对象本身。
 
 ```js
 const foo = markRaw({})
 console.log(isReactive(reactive(foo))) // false
 
-// also works when nested inside other reactive objects
+// 如果被 markRaw 标记了，即使在响应式对象中作属性，也依然不是响应式的
 const bar = reactive({ foo })
 console.log(isReactive(bar.foo)) // false
 ```
 
 ::: warning
-`markRaw` and the shallowXXX APIs below allow you to selectively opt-out of the default deep reactive / readonly conversion and embed raw, non-proxied objects in your state graph. They can be used for various reasons:
+`markRaw` 和下面的 shallowXXX 一族的 API 使得你可以只是浅层地读取一个响应式对象，即只读取目标的属性值而不关心其更深层次的响应性。需要这种「浅层读取」有以下几种原因：
 
-- Some values simply should not be made reactive, for example a complex 3rd party class instance, or a Vue component object.
+- 一些值的实际上的用法非常简单，并没有必要转为响应式，比如某个复杂的第三方类库的实例，或者 Vue 组件对象
 
-- Skipping proxy conversion can provide performance improvements when rendering large lists with immutable data sources.
+- 当渲染一个元素数量庞大，但又几乎不怎么更改的列表时，跳过 Proxy 的转换可以带来很大的性能提升。
 
-They are considered advanced because the raw opt-out is only at the root level, so if you set a nested, non-marked raw object into a reactive object and then access it again, you get the proxied version back. This can lead to **identity hazards** - i.e. performing an operation that relies on object identity but using both the raw and the proxied version of the same object:
+目前这方面我们做得还不够，仍在改进中。现在这种输出的选择还仅仅停留在根级别，所以如果你将一个深层次的，没有标记为 “raw” 的对象设置为某 reactive 响应式对象的属性，在重新访问他们时，你又会得到一个 Proxy 的版本，在使用中最终会导致「**依赖混淆**」的严重问题：即 被动响应的执行 同时依赖于某个对象的原始版本和代理版本。
 
 ```js
 const foo = markRaw({
@@ -1016,19 +1030,19 @@ const foo = markRaw({
 })
 
 const bar = reactive({
-  // although `foo` is marked as raw, foo.nested is not.
+  // 尽管 `foo` 己经被标记为 raw 了, 但 foo.nested 并没有
   nested: foo.nested,
 })
 
 console.log(foo.nested === bar.nested) // false
 ```
 
-Identity hazards are in general rare. But to properly utilize these APIs while safely avoiding identity hazards requires a solid understanding of how the reactivity system works.
+「依赖混淆」 在一般使用当中应该是非常罕见的，但是要想完全避免这样的问题，必须要对整个响应式系统对工作原理有一个相当清晰对认知。
 :::
 
 ### `shallowReactive`
 
-Create a reactive proxy that tracks reactivity of its own properties, but does not perform deep reactive conversion of nested objects (exposes raw values).
+只为某个对象的自有（第一层）属性创建浅层的响应式代理，不会对 “属性的属性” 做深层次、递归地响应式代理，而只是保留原样。
 
 ```js
 const state = shallowReactive({
@@ -1038,16 +1052,16 @@ const state = shallowReactive({
   },
 })
 
-// mutating state's own properties is reactive
+// 更改 state 的自有属性是响应式的
 state.foo++
-// ...but does not convert nested objects
+// ...但不会深层代理
 isReactive(state.nested) // false
-state.nested.bar++ // non-reactive
+state.nested.bar++ // 非响应式
 ```
 
 ### `shallowReadonly`
 
-Create a proxy that makes its own properties readonly, but does not perform deep readonly conversion of nested objects (exposes raw values).
+只为某个对象的自有（第一层）属性创建浅层的**只读**响应式代理，同样也不会做深层次、递归地代理，深层次的属性并不是只读的。
 
 ```js
 const state = shallowReadonly({
@@ -1057,28 +1071,32 @@ const state = shallowReadonly({
   },
 })
 
-// mutating state's own properties will fail
+// 尝试修改 state 的自有属性但是失败报错了
 state.foo++
-// ...but works on nested objects
+// ...但对于深层次属性来说是无作用的
 isReadonly(state.nested) // false
-state.nested.bar++ // works
+state.nested.bar++ // 深层次属性依然可修改
 ```
 
 ### `shallowRef`
 
-Create a ref that tracks its own `.value` mutation but doesn't make its value reactive.
+创建一个 ref 引用，将会追踪它的 `.value` 更改操作，但是并不会对更新后对 `.value` 做响应式代理转换（即不会执行一次 `reactive`）
+
+[具体原理详见 reactivity/ref.ts](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/ref.ts#L57)
 
 ```js
 const foo = shallowRef({})
-// mutating the ref's value is reactive
+// 更改对操作会触发响应
 foo.value = {}
-// but the value will not be converted.
+// 但上面新赋的这个对象并不会变为响应式对象
 isReactive(foo.value) // false
 ```
 
 ### `toRaw`
 
-Return the raw, original object of a `reactive` or `readonly` proxy. This is an escape hatch that can be used to temporarily read without incurring proxy access / tracking overhead or write without triggering changes. It is **not** recommended to hold a persistent reference to the original object. Use with caution.
+返回由 `reactive` 或 `readonly` 方法转换成响应式代理的原始值。算是一个软脱离的方法。
+
+可以用于临时读取但又不想造成代理访问/跟踪的开销，或写入而不想触发响应的场景。
 
 ```js
 const foo = {}
