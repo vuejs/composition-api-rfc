@@ -225,7 +225,7 @@ state.count++ // -> 2
 
 > 你可能会担心说：“诶！Vue 本身不是已经有 "refs" 的概念了么？”
 >
-> 原来的 `ref` 只是为了获取 DOM 元素或组建实例的「 template refs 模板引用」，更多详见这里的 [API 参考](./api.html#template-refs)，你乎看到新的 refs 系统是如何同时兼容 _逻辑引用值_ 与 _模板引用_ 的。
+> 原来的 `ref` 只是为了获取 DOM 元素或组建实例的「 template refs 模板引用」，更多详见这里的 [API 参考](./api.html#template-refs)，查看新的 refs 系统是如何同时兼容 _逻辑引用值_ 与 _模板引用_ 的。
 
 在 `computed` 之外，我们同样提供了一个 API 来直接创建一个「**响应式值引用 ref**」：
 
