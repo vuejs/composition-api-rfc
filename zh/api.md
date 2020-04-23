@@ -127,9 +127,9 @@ sidebarDepth: 2
   ```js
   const MyComponent = {
     setup(props, { attrs }) {
-      // a function that may get called at a later stage
+      // 一个可能之后回调用的签名
       function onClick() {
-        console.log(attrs.foo) // guaranteed to be the latest reference
+        console.log(attrs.foo) // 一定是最新的引用，没有丢失响应性
       }
     },
   }
@@ -139,7 +139,7 @@ sidebarDepth: 2
 
   - 组件使用 `props` 的场景更多，有时候甚至只使用 `props`
 
-  - 将 `props` 独立出来作为第一个参数，是为了让 TypeScript 对 props 有更好对类型推导，不会和上下文中的其他属性 without messing up the types of other properties on the context. It also makes it possible to keep a consistent signature across `setup`, `render` and plain functional components with TSX support.
+  - 将 `props` 独立出来作为第一个参数，是为了让 TypeScript 对 props 有更好对类型推导，不会和上下文中的其他属性相混淆。这也使得与 `setup` 、 `render` 和其他使用了 TSX 的函数式组件的参数签名保持一致。
 
 - **Usage of `this`**
 
