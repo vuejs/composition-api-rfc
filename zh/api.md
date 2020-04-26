@@ -3,7 +3,7 @@ sidebar: auto
 sidebarDepth: 2
 ---
 
-# API Reference
+# API 手册
 
 ::: tip
 从 Vue Mastery 免费下载 [Cheat Sheet](https://www.vuemastery.com/vue-3-cheat-sheet/)，或观看 [Vue3 免费课程](https://www.vuemastery.com/courses/vue-3-essentials/why-the-composition-api/)
@@ -13,11 +13,11 @@ sidebarDepth: 2
 
 `setup` 函数是一个新的组件选项。作为在组件内使用 Composition API 的入口点。
 
-- **何时调用？**
+- **调用时机**
 
-  在组件实例创建时，`setup` 会在初始化 props 后立即调用。从生命周期来看，它会在 `beforeCreate` 前被调用。
+  创建组件实例，然后初始化 `props` ，紧接着就调用`setup` 函数。从生命周期钩子的视角来看，它会在 `beforeCreate` 钩子之前被调用
 
-- **与模板一起使用时的注意事项**
+- **模板中使用**
 
   如果 `setup` 返回一个对象，则对象的属性将会被合并到组件模板的渲染上下文：
 
@@ -44,9 +44,9 @@ sidebarDepth: 2
   </script>
   ```
 
-  注意 `setup` 返回的 refs 在模板中访问时会自动解构，因此在模板中使用时不需要 `.value`。
+  注意 `setup` 返回的 ref 在模板中会自动解开，不需要写 `.value`。
 
-- **配合 render 函数 / JSX 的用法**
+- **渲染函数 / JSX 中使用**
 
   `setup` 也可以返回一个能使用同作用域下 reactive 状态的渲染函数：
 
@@ -141,7 +141,7 @@ sidebarDepth: 2
 
   - 将 `props` 独立出来作为第一个参数，是为了让 TypeScript 对 props 有更好对类型推导，不会和上下文中的其他属性相混淆。这也使得与 `setup` 、 `render` 和其他使用了 TSX 的函数式组件的参数签名保持一致。
 
-- **Usage of `this`**
+- **`this`的用法**
 
   **`this` 在 `setup()` 中不可用。** 由于 `setup()` 在解析 2.x 选项前被调用，`setup()` 中的 `this` 将与 2.X 选项中的 `this` 完全不同。同时在 `setup()` 和 2.x 选项中使用 `this` 时将造成混乱。在 `setup()` 中避免这种情况的另一个原因是：这对于初学者来说可能并没有完全弄清楚 `this` 当时所代表的含义从而导致出错：
 
@@ -186,17 +186,17 @@ sidebarDepth: 2
   为了获得传递给 `setup()` 参数的类型推断，需要使用 [`defineComponent`](#defineComponent)。
   :::
 
-## 响应式系统相关 API
+## 响应式系统 API
 
 ### `reactive`
 
-传入一个对象并返回原始对象的响应代理。等同于 2.x 的 `Vue.observable()`
+接收一个普通对象然后返回该普通对象的响应式代理。等同于 2.x 的 `Vue.observable()`
 
 ```js
 const obj = reactive({ count: 0 })
 ```
 
-响应式转换是 “深层递归”：它影响所有内部的属性。基于 ES2015 的 Proxy 代理实现，返回的代理对象 **不等于** 原始对象。我们建议 **仅使用代理对象** 而避免依赖原始对象。
+响应式转换是“深层的”：会影响对象内部所有嵌套的属性。基于 ES2015 的 Proxy 实现，返回的代理对象 **不等于** 原始对象。建议仅使用代理对象而避免依赖原始对象。
 
 - **类型定义**
 
@@ -777,7 +777,7 @@ const Descendent = {
 </script>
 ```
 
-这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM 对比匹配算法中，如果一个 VNode 的 `ref` 键对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给对应 ref 的值。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 refs 仅在初始渲染后才能被访问。
+这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM 对比匹配算法中，如果一个 VNode 的 `ref` 键对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给对应 ref 的值。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 ref 仅在初始渲染后才能被访问。
 
 ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应式的，并可以传递进组合逻辑函数（或返回）。
 
@@ -801,7 +801,7 @@ ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应�
 
 - **在 `v-for` 中使用**
 
-  `template refs` 在 `v-for` 中，需要使用 **函数型的 `ref`**（3.0 提供的新功能）来自定义处理方式：
+  模板 ref 在 `v-for` 中，需要使用 **函数型的 ref**（3.0 提供的新功能）来自定义处理方式：
 
   ```html
   <template>
