@@ -34,7 +34,7 @@ sidebarDepth: 2
         const count = ref(0)
         const object = reactive({ foo: 'bar' })
 
-        // expose to template
+        // 暴露给模板
         return {
           count,
           object,
@@ -48,7 +48,7 @@ sidebarDepth: 2
 
 - **渲染函数 / JSX 中使用**
 
-  `setup` 也可以返回一个能使用同作用域下 reactive 状态的渲染函数：
+  `setup` 也可以返回一个函数，函数中能使用当前作用域下的响应式数据：
 
   ```js
   import { h, ref, reactive } from 'vue'
@@ -93,7 +93,7 @@ sidebarDepth: 2
   }
   ```
 
-  然而不要解构 `props` 对象，那样会使其失去响应：
+  然而**不要**解构 `props` 对象，那样会使其失去响应式的功能：
 
   ```js
   export default {
@@ -108,9 +108,9 @@ sidebarDepth: 2
   }
   ```
 
-  在开发过程中，组件内尝试修改 `props` 时将会报出警告。
+  在开发过程中，对象对用户空间代码是不可变的。（用户代码尝试修改 `props` 时会触发警告）
 
-  第二个参数提供了一个包含 2.X APIs `this` 属性的上下文：
+  第二个参数提供了一个上下文对象，从原来 2.x 中 `this` 选择性地暴露了一些 property。
 
   ```js
   const MyComponent = {
@@ -122,7 +122,7 @@ sidebarDepth: 2
   }
   ```
 
-  `attrs` 和 `slots` 都是组件实例上对应的代理对象，可以确保在更新变化后显示最新值：
+  `attrs` 和 `slots` 都是内部组件实例上对应值的代理，可以确保在更新后仍然是最新值。所以可以解构，无需担心后面访问到过期的值：
 
   ```js
   const MyComponent = {
@@ -139,30 +139,17 @@ sidebarDepth: 2
 
   - 组件使用 `props` 的场景更多，有时候甚至只使用 `props`
 
-  - 将 `props` 独立出来作为第一个参数，是为了让 TypeScript 对 props 有更好对类型推导，不会和上下文中的其他属性相混淆。这也使得与 `setup` 、 `render` 和其他使用了 TSX 的函数式组件的参数签名保持一致。
+  - 将 `props` 独立出来作为第一个参数，可以让 TypeScript 对 `props` 单独做类型推导，不会和上下文中的其他属性相混淆。这也使得 `setup` 、 `render` 和其他使用了 TSX 的函数式组件的签名保持一致。
 
 - **`this`的用法**
 
-  **`this` 在 `setup()` 中不可用。** 由于 `setup()` 在解析 2.x 选项前被调用，`setup()` 中的 `this` 将与 2.X 选项中的 `this` 完全不同。同时在 `setup()` 和 2.x 选项中使用 `this` 时将造成混乱。在 `setup()` 中避免这种情况的另一个原因是：这对于初学者来说可能并没有完全弄清楚 `this` 当时所代表的含义从而导致出错：
+  **`this` 在 `setup()` 中不可用。** 由于 `setup()` 在解析 2.x 选项前被调用，`setup()` 中的 `this` 将与 2.x 选项中的 `this` 完全不同。同时在 `setup()` 和 2.x 选项中使用 `this` 时将造成混乱。在 `setup()` 中避免这种情况的另一个原因是：这对于初学者来说可能并没有完全弄清楚 `this` 当时所代表的含义从而导致出错：
 
   ```js
   setup() {
     function onClick() {
-      this // 这里 `this` 不是你想要的意思！
+      this // 这里 `this` 与你期望的不一样！
     }
-    /*
-      JavaScript this 关键词指的是它所属的对象。
-
-      它拥有不同的值，具体取决于它的使用位置：
-
-      - 在方法中，this 指的是所有者对象。
-      - 单独的情况下，this 指的是全局对象。
-      - 在函数中，this 指的是全局对象。
-      - 在函数中，严格模式下，this 是 undefined。
-      - 在事件中，this 指的是接收事件的元素。
-
-      像 call() 和 apply() 这样的方法可以将 this 引用到任何对象。
-    */
   }
   ```
 
