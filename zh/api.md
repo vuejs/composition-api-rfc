@@ -605,7 +605,7 @@ watchEffect(
 
 ## 生命周期钩子函数
 
-可以通过导入 `onXXX` 一族的函数来注册生命周期钩子：
+可以直接导入 `onXXX` 一族的函数来注册生命周期钩子：
 
 ```js
 import { onMounted, onUpdated, onUnmounted } from 'vue'
@@ -627,12 +627,12 @@ const MyComponent = {
 
 这些生命周期钩子注册函数只能在 `setup()` 期间同步使用， 因为它们依赖于内部的全局状态来定位当前组件实例（正在调用 `setup()` 的组件实例）, 不在当前组件下调用这些函数会抛出一个错误。
 
-组件实例上下文也是在生命周期钩子同步执行期间设置的，因此，在卸载组件时，在生命周期钩子内部同步创建的 watchers 和 computed 计算状态也将自动删除。
+组件实例上下文也是在生命周期钩子同步执行期间设置的，因此，在卸载组件时，在生命周期钩子内部同步创建的侦听器和计算状态也将自动删除。
 
-- **与 2.x 版本生命周期相对应的 Composition API**
+- **与 2.x 版本生命周期相对应的组合式 API**
 
-  - ~~`beforeCreate`~~ -> use `setup()`
-  - ~~`created`~~ -> use `setup()`
+  - ~~`beforeCreate`~~ -> 使用 `setup()`
+  - ~~`created`~~ -> 使用 `setup()`
   - `beforeMount` -> `onBeforeMount`
   - `mounted` -> `onMounted`
   - `beforeUpdate` -> `onBeforeUpdate`
@@ -643,12 +643,12 @@ const MyComponent = {
 
 - **新增的钩子函数**
 
-  除了和 2.x 生命周期等效项之外，Composition API 还提供了以下调试钩子函数：
+  除了和 2.x 生命周期等效项之外，组合式 API 还提供了以下调试钩子函数：
 
   - `onRenderTracked`
   - `onRenderTriggered`
 
-  两个钩子函数都接收一个 `DebuggerEvent`，这个参数跟 `watchEffect` 第二个参数 options 中的 onTrack 和 onTrigger 一样:：
+  两个钩子函数都接收一个 `DebuggerEvent`，与 `watchEffect` 参数选项中的 `onTrack` 和 `onTrigger` 类似：
 
   ```js
   export default {
@@ -661,7 +661,7 @@ const MyComponent = {
 
 ## 依赖注入
 
-`provide` 和 `inject` 功能类似 2.x 的 `provide/inject` ，提供依赖注入。两者都只能在当前活动组件实例的 `setup()` 中调用。
+`provide` 和 `inject` 提供依赖注入，功能类似 2.x 的 `provide/inject`。两者都只能在当前活动组件实例的 `setup()` 中调用。
 
 ```js
 import { provide, inject } from 'vue'
@@ -686,9 +686,9 @@ const Descendent = {
 
 `inject` 接受一个可缺省的默认值作为第二个参数。如果未提供默认值，并且在 provide 上下文中未找到该属性，则 `inject` 返回 `undefined`。
 
-- **Injection Reactivity**
+- **注入的响应性**
 
-  可以使用 ref 来保证 provided 和 injected 之间值的响应：
+  可以使用 `ref` 来保证 `provided` 和 `injected` 之间值的响应：
 
   ```js
   // 提供者：
@@ -717,7 +717,7 @@ const Descendent = {
   function inject<T>(key: InjectionKey<T> | string, defaultValue: T): T
   ```
 
-  Vue 提供了一个继承 `Symbol` 的 `InjectionKey` 接口。它可用于在 provider 和 consumer 之间同步注入值的类型：
+  Vue 提供了一个继承 `Symbol` 的 `InjectionKey` 接口。它可用于在提供者和消费者之间同步注入值的类型：
 
   ```ts
   import { InjectionKey, provide, inject } from 'vue'
@@ -764,9 +764,9 @@ const Descendent = {
 </script>
 ```
 
-这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM 对比匹配算法中，如果一个 VNode 的 `ref` 键对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给对应 ref 的值。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 ref 仅在初始渲染后才能被访问。
+这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM patch 算法中，如果一个 VNode 的 `ref` 对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给该 ref。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 ref 仅在渲染初始化后才能访问。
 
-ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应式的，并可以传递进组合逻辑函数（或返回）。
+ref 被用在模板中时和其他 ref 一样：都是响应式的，并可以传递进组合函数（或从其中返回）。
 
 - **配合 render 函数 / JSX 的用法**
 
@@ -788,7 +788,7 @@ ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应�
 
 - **在 `v-for` 中使用**
 
-  模板 ref 在 `v-for` 中，需要使用 **函数型的 ref**（3.0 提供的新功能）来自定义处理方式：
+  模板 ref 在 `v-for` 中，需要使用**函数型的 ref**（3.0 提供的新功能）来自定义处理方式：
 
   ```html
   <template>
@@ -805,7 +805,7 @@ ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应�
         const list = reactive([1, 2, 3])
         const divs = ref([])
 
-        // make sure to reset the refs before each update
+        // 确保在每次变更之前重置引用
         onBeforeUpdate(() => {
           divs.value = []
         })
@@ -819,11 +819,11 @@ ref 被用作模板引用时的行为和其他 ref 一样：它们都是响应�
   </script>
   ```
 
-## 响应式系统常用方法
+## 响应式系统工具方法
 
 ### `unref`
 
-如果参数是一个 ref 则返回它的 value，否则返回参数本身。它是 `val = isRef(val) ? val.value : val` 的语法糖。
+如果参数是一个 ref 则返回它的 `value`，否则返回参数本身。它是 `val = isRef(val) ? val.value : val` 的语法糖。
 
 ```js
 function useFoo(x: number | Ref<number>) {
@@ -862,7 +862,7 @@ export default {
 
 ### `toRefs`
 
-传入一个响应式对象, 返回所有属性被转换成 ref 对象的普通对象:
+传入一个响应式对象, 返回所有属性被转换成 ref 的普通对象:
 
 ```js
 const state = reactive({
@@ -938,7 +938,7 @@ export default {
 
 ### `customRef`
 
-`customRef` 用于自定义一个 `ref`，需要显式地指出如何控制依赖追踪（`track()`）和如何触发响应（`trigger`），接受一个工厂函数，两个参数分别是用于追踪的 `track` 与用于触发响应的 `trigger`，并返回一个一个带有 `get` 和 `set` 属性的对象
+`customRef` 用于自定义一个 `ref`，需要显式地指出如何控制依赖追踪和触发响应，接受一个工厂函数，两个参数分别是用于追踪的 `track` 与用于触发响应的 `trigger`，并返回一个一个带有 `get` 和 `set` 属性的对象
 
 - 这里给出了一个如何用来做 `v-model` 防抖的例子：
 
@@ -991,7 +991,7 @@ export default {
 
 ### `markRaw`
 
-显式标记一个对象为 “永远不会转为响应式代理”，函数返回这个对象本身。
+显式标记一个对象为“永远不会转为响应式代理”，函数返回这个对象本身。
 
 ```js
 const foo = markRaw({})
@@ -1009,7 +1009,7 @@ console.log(isReactive(bar.foo)) // false
 
 - 当渲染一个元素数量庞大，但又几乎不怎么更改的列表时，跳过 Proxy 的转换可以带来很大的性能提升。
 
-目前这方面我们做得还不够，仍在改进中。现在这种输出的选择还仅仅停留在根级别，所以如果你将一个深层次的，没有标记为 “raw” 的对象设置为某 reactive 响应式对象的属性，在重新访问他们时，你又会得到一个 Proxy 的版本，在使用中最终会导致「**依赖混淆**」的严重问题：即 副作用的执行 同时依赖于某个对象的原始版本和代理版本。
+目前这方面做得还不够，仍在改进中。现在输出的选择还仅停留在根级别，所以如果你将一个深层次的，没有 `markRaw` 的对象设置为 reactive 对象的属性，在重新访问时，你又会得到一个 Proxy 的版本，在使用中最终会导致**依赖混淆**的严重问题：即副作用的执行同时依赖于某个对象的原始版本和代理版本。
 
 ```js
 const foo = markRaw({
@@ -1024,12 +1024,12 @@ const bar = reactive({
 console.log(foo.nested === bar.nested) // false
 ```
 
-「依赖混淆」 在一般使用当中应该是非常罕见的，但是要想完全避免这样的问题，必须要对整个响应式系统对工作原理有一个相当清晰对认知。
+依赖混淆在一般使用当中应该是非常罕见的，但是要想完全避免这样的问题，必须要对整个响应式系统的工作原理有一个相当清晰的认知。
 :::
 
 ### `shallowReactive`
 
-只为某个对象的自有（第一层）属性创建浅层的响应式代理，不会对 “属性的属性” 做深层次、递归地响应式代理，而只是保留原样。
+只为某个对象的私有（第一层）属性创建浅层的响应式代理，不会对“属性的属性”做深层次、递归地响应式代理，而只是保留原样。
 
 ```js
 const state = shallowReactive({
@@ -1067,9 +1067,7 @@ state.nested.bar++ // 深层次属性依然可修改
 
 ### `shallowRef`
 
-创建一个 ref 引用，将会追踪它的 `.value` 更改操作，但是并不会对更新后对 `.value` 做响应式代理转换（即不会执行一次 `reactive`）
-
-[具体原理详见 reactivity/ref.ts](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/ref.ts#L57)
+创建一个 ref ，将会追踪它的 `.value` 更改操作，但是并不会对更新后对 `.value` 做响应式代理转换（即变更时不会调用 `reactive`）
 
 ```js
 const foo = shallowRef({})
@@ -1081,9 +1079,7 @@ isReactive(foo.value) // false
 
 ### `toRaw`
 
-返回由 `reactive` 或 `readonly` 方法转换成响应式代理的原始值。算是一个软脱离的方法。
-
-可以用于临时读取但又不想造成代理访问/跟踪的开销，或写入而不想触发响应的场景。
+返回由 `reactive` 或 `readonly` 方法转换成响应式代理的原始对象。这是一个还原方法，可用于临时读取，访问不会被代理/跟踪，写入时也不会触发更改。不建议一直持有原始对象的引用。请谨慎使用。
 
 ```js
 const foo = {}

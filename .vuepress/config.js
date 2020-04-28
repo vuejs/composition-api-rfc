@@ -12,8 +12,6 @@ module.exports = {
         nav: [
           { text: '征求意见稿', link: '/zh/' },
           { text: 'API 参考', link: '/zh/api/' },
-          { text: '词汇表', link: '/zh/dictionary/' }
-          
         ],
       },
       
