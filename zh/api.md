@@ -527,12 +527,12 @@ watchEffect(
 - 对比 `watchEffect`，`watch` 允许我们：
 
   - 懒执行副作用；
-  - 更明确侦听器应重新运行哪些状态的副作用；
+  - 更明确哪些状态的改变会触发侦听器重新运行副作用；
   - 访问侦听状态变化前后的值。
 
 - **侦听单个数据源**
 
-  侦听者的数据源头可以是一个拥有返回值的 getter 函数，也可以是 ref：
+  侦听器的数据源可以是一个拥有返回值的 getter 函数，也可以是 ref：
 
   ```js
   // 侦听一个 getter
@@ -563,7 +563,7 @@ watchEffect(
 
 - **与 `watchEffect` 共享的行为**
 
-  watch 和 watchEffect 在[停止侦听](#手动停止侦听), [清除副作用](#清除副作用) (相应地 `onInvalidate` 会作为回调的第三个参数传入)，[副作用刷新时间](#副作用刷新时间) 和 [侦听器调试](#侦听器调试) 等方面行为一致.
+  watch 和 watchEffect 在[停止侦听](#手动停止侦听), [清除副作用](#清除副作用) (相应地 `onInvalidate` 会作为回调的第三个参数传入)，[副作用刷新时机](#副作用刷新时机) 和 [侦听器调试](#侦听器调试) 等方面行为一致.
 
 - **类型定义**
 
@@ -684,7 +684,7 @@ const Descendent = {
 }
 ```
 
-`inject` 接受一个可缺省的默认值作为第二个参数。如果未提供默认值，并且在 provide 上下文中未找到该属性，则 `inject` 返回 `undefined`。
+`inject` 接受一个可选的的默认值作为第二个参数。如果未提供默认值，并且在 provide 上下文中未找到该属性，则 `inject` 返回 `undefined`。
 
 - **注入的响应性**
 
@@ -735,7 +735,7 @@ const Descendent = {
   const foo = inject<string>('foo') // string | undefined
   ```
 
-## 模板中的 Ref
+## 模板 Refs
 
 当使用组合式 API 时，_reactive refs_ 和 _template refs_ 的概念已经是统一的。为了获得对模板内元素或组件实例的引用，我们可以像往常一样在 `setup()` 中声明一个 ref 并返回它：
 
@@ -764,7 +764,7 @@ const Descendent = {
 </script>
 ```
 
-这里我们将 `root` 暴露在渲染上下文中，并通过 `ref ="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM patch 算法中，如果一个 VNode 的 `ref` 对应于一个渲染上下文中的 ref，则该 VNode 的对应元素或组件实例将被分配给该 ref。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 ref 仅在渲染初始化后才能访问。
+这里我们将 `root` 暴露在渲染上下文中，并通过 `ref="root"` 绑定到 `div` 作为其 `ref`。 在 Virtual DOM patch 算法中，如果一个 VNode 的 `ref` 对应一个渲染上下文中的 ref，则该 VNode 对应的元素或组件实例将被分配给该 ref。 这是在 Virtual DOM 的 mount / patch 过程中执行的，因此模板 ref 仅在渲染初始化后才能访问。
 
 ref 被用在模板中时和其他 ref 一样：都是响应式的，并可以传递进组合函数（或从其中返回）。
 
@@ -788,7 +788,7 @@ ref 被用在模板中时和其他 ref 一样：都是响应式的，并可以�
 
 - **在 `v-for` 中使用**
 
-  模板 ref 在 `v-for` 中，需要使用**函数型的 ref**（3.0 提供的新功能）来自定义处理方式：
+  模板 ref 在 `v-for` 中使用 vue 没有做特殊处理，需要使用**函数型的 ref**（3.0 提供的新功能）来自定义处理方式：
 
   ```html
   <template>
@@ -819,7 +819,7 @@ ref 被用在模板中时和其他 ref 一样：都是响应式的，并可以�
   </script>
   ```
 
-## 响应式系统工具方法
+## 响应式系统工具集
 
 ### `unref`
 
@@ -862,7 +862,7 @@ export default {
 
 ### `toRefs`
 
-传入一个响应式对象, 返回所有属性被转换成 ref 的普通对象:
+把一个响应式对象转换成普通对象，该普通对象的每个 property 都是一个 ref ，和响应式对象 property 一一对应。
 
 ```js
 const state = reactive({
@@ -888,7 +888,7 @@ stateAsRefs.foo.value++
 console.log(state.foo) // 3
 ```
 
-当想要从一个组合逻辑函数中返回响应式对象时，用 `toRefs` 是很有效的，因此例子中假设的这个组件可以 解构 / 扩展（使用 `...` 操作符）返回的对象，并不会丢失响应性：
+当想要从一个组合逻辑函数中返回响应式对象时，用 `toRefs` 是很有效的，该 API 让消费组件可以 解构 / 扩展（使用 `...` 操作符）返回的对象，并不会丢失响应性：
 
 ```js
 function useFeatureX() {
@@ -922,11 +922,11 @@ export default {
 
 ### `isProxy`
 
-检查一个 proxy 对象是否是由 `reactive` 还是 `readonly` 方法创建的。
+检查一个对象是否是由 `reactive` 还是 `readonly` 方法创建的代理。
 
 ### `isReactive`
 
-检查一个对象是否是由 `reactive` 创建的响应式代理对象。
+检查一个对象是否是由 `reactive` 创建的响应式代理。
 
 如果这个代理是由 `readonly` 创建的，但是又被 `reactive` 创建的另一个代理包裹了一层，那么同样也会返回 `true`。
 
@@ -934,13 +934,13 @@ export default {
 
 检查一个对象是否是由 `readonly` 创建的只读代理。
 
-## 更高级的响应式系统 API
+## 高级响应式系统 APIs
 
 ### `customRef`
 
-`customRef` 用于自定义一个 `ref`，需要显式地指出如何控制依赖追踪和触发响应，接受一个工厂函数，两个参数分别是用于追踪的 `track` 与用于触发响应的 `trigger`，并返回一个一个带有 `get` 和 `set` 属性的对象
+`customRef` 用于自定义一个 `ref`，可以显式地控制依赖追踪和触发响应，接受一个工厂函数，两个参数分别是用于追踪的 `track` 与用于触发响应的 `trigger`，并返回一个一个带有 `get` 和 `set` 属性的对象
 
-- 这里给出了一个如何用来做 `v-model` 防抖的例子：
+- 使用自定义 ref 实现带防抖功能的 `v-model` ：
 
   ```html
   <input v-model="text" />
@@ -1003,13 +1003,13 @@ console.log(isReactive(bar.foo)) // false
 ```
 
 ::: warning
-`markRaw` 和下面的 shallowXXX 一族的 API 使得你可以只是浅层地读取一个响应式对象，即只读取目标的属性值而不关心其更深层次的响应性。需要这种「浅层读取」有以下几种原因：
+`markRaw` 和下面的 shallowXXX 一族的 API 允许你可选择性的覆盖 reactive readonly 默认 "深层的" 特性，或者使用无代理的普通对象。设计这种「浅层读取」有很多原因，比如：
 
 - 一些值的实际上的用法非常简单，并没有必要转为响应式，比如某个复杂的第三方类库的实例，或者 Vue 组件对象
 
-- 当渲染一个元素数量庞大，但又几乎不怎么更改的列表时，跳过 Proxy 的转换可以带来很大的性能提升。
+- 当渲染一个元素数量庞大，但是数据是不可变的，跳过 Proxy 的转换可以带来性能提升。
 
-目前这方面做得还不够，仍在改进中。现在输出的选择还仅停留在根级别，所以如果你将一个深层次的，没有 `markRaw` 的对象设置为 reactive 对象的属性，在重新访问时，你又会得到一个 Proxy 的版本，在使用中最终会导致**依赖混淆**的严重问题：即副作用的执行同时依赖于某个对象的原始版本和代理版本。
+这些 API 被设计成高级是因为这种特性仅停留在根级别，所以如果你将一个嵌套的，没有 `markRaw` 的对象设置为 reactive 对象的属性，在重新访问时，你又会得到一个 Proxy 的版本，在使用中最终会导致**标识混淆**的严重问题：执行某个操作同时依赖于某个对象的原始版本和代理版本。
 
 ```js
 const foo = markRaw({
@@ -1024,7 +1024,7 @@ const bar = reactive({
 console.log(foo.nested === bar.nested) // false
 ```
 
-依赖混淆在一般使用当中应该是非常罕见的，但是要想完全避免这样的问题，必须要对整个响应式系统的工作原理有一个相当清晰的认知。
+标识混淆在一般使用当中应该是非常罕见的，但是要想完全避免这样的问题，必须要对整个响应式系统的工作原理有一个相当清晰的认知。
 :::
 
 ### `shallowReactive`
@@ -1039,7 +1039,7 @@ const state = shallowReactive({
   },
 })
 
-// 更改 state 的自有属性是响应式的
+// 变更 state 的自有属性是响应式的
 state.foo++
 // ...但不会深层代理
 isReactive(state.nested) // false
@@ -1058,16 +1058,16 @@ const state = shallowReadonly({
   },
 })
 
-// 尝试修改 state 的自有属性但是失败报错了
+// 变更 state 的自有属性会失败
 state.foo++
-// ...但对于深层次属性来说是无作用的
+// ...但是嵌套的对象是可以变更的
 isReadonly(state.nested) // false
-state.nested.bar++ // 深层次属性依然可修改
+state.nested.bar++ // 嵌套属性依然可修改
 ```
 
 ### `shallowRef`
 
-创建一个 ref ，将会追踪它的 `.value` 更改操作，但是并不会对更新后对 `.value` 做响应式代理转换（即变更时不会调用 `reactive`）
+创建一个 ref ，将会追踪它的 `.value` 更改操作，但是并不会对变更后的 `.value` 做响应式代理转换（即变更不会调用 `reactive`）
 
 ```js
 const foo = shallowRef({})
@@ -1079,7 +1079,7 @@ isReactive(foo.value) // false
 
 ### `toRaw`
 
-返回由 `reactive` 或 `readonly` 方法转换成响应式代理的原始对象。这是一个还原方法，可用于临时读取，访问不会被代理/跟踪，写入时也不会触发更改。不建议一直持有原始对象的引用。请谨慎使用。
+返回由 `reactive` 或 `readonly` 方法转换成响应式代理的普通对象。这是一个还原方法，可用于临时读取，访问不会被代理/跟踪，写入时也不会触发更改。不建议一直持有原始对象的引用。请谨慎使用。
 
 ```js
 const foo = {}
