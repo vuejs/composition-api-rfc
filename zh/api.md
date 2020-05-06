@@ -934,7 +934,7 @@ export default {
 
 检查一个对象是否是由 `readonly` 创建的只读代理。
 
-## 高级响应式系统 APIs
+## 高级响应式系统 API
 
 ### `customRef`
 
