@@ -392,7 +392,9 @@ watchEffect(onInvalidate => {
 })
 ```
 
-We are registering the invalidation callback via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. It is very common for the effect function to be an async function when performing data fetching:
+We are registering the invalidation callback via a passed-in function instead of returning it from the callback (like React `useEffect`) because the return value is important for async error handling. 
+
+It is very common for the effect function to be an async function when performing data fetching:
 
 ```js
 const data = ref(null)
