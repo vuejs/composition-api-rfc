@@ -228,7 +228,7 @@ We can expose a ref as a property on the render context. Internally, Vue will pe
 Here's a version of the same counter example, using `ref` instead of `reactive`:
 
 ``` js
-import { ref, watch } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 const count = ref(0)
 
