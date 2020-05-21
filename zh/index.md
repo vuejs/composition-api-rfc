@@ -242,7 +242,7 @@ console.log(count.value) // 1
 这是计数器示例的另一个版本, 使用的是 `ref` 而不是 `reactive`:
 
 ```js
-import { ref, watch } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 const count = ref(0)
 
