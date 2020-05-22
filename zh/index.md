@@ -829,9 +829,9 @@ class App extends Component<Props> {
 }
 ```
 
-使用 decorator 导致它依赖一个带有很大不确定性的 stage-2 提案，特别是现在 TypeScript 的实现方案已经完全不是与 TC39 提案相同步的。除此之外没有什么太好的办法能够将定义在 `this.$props` 上的 prop 类型声明暴露出来， 这使得难以支持 TSX。从而破坏 TSX 支持。另外用户也会假设他们可以通过 `@prop message: string = 'foo'` 为某些 prop 声明默认值，但技术上这其实并不可用。
+使用 decorator 导致它依赖一个带有很大不确定性的 stage-2 提案，特别是现在 TypeScript 的实现方案已经完全不是与 TC39 提案相同步的。除此之外没有什么太好的办法能够将定义在 `this.$props` 上的 prop 类型声明暴露出来， 这使得难以支持 TSX。从而破坏 TSX 支持。另外用户也可能会认为他们可以通过 `@prop message: string = 'foo'` 为某些 prop 声明默认值，但技术上这其实并不可用。
 
-加之目前还没有很好的办法利用上下文的类型标注来推导 class 方法的参数——这意味着传递给一个 class 的 `render` 函数不能基于 class 的其它 property 来推导参数类型。
+加之目前还没有很好的办法利用上下文的类型标注来推导 class 方法的参数——这意味着传递给 class 的 `render` 函数的参数，不能基于 class 的其它 property 来推导参数类型。
 
 ### 与 React Hooks 相比
 
