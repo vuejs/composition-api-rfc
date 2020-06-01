@@ -173,6 +173,56 @@ sidebarDepth: 2
   为了获得传递给 `setup()` 参数的类型推断，需要使用 [`defineComponent`](#defineComponent)。
   :::
 
+  一个简单的demo:
+
+  ```ts
+  interface Props {
+    message?: String
+  }
+
+  defineComponent({
+    props: {
+      message: {
+        type: String,
+        default: "",
+      }
+    },
+    setup(props: Props) {
+      const innerMessage = props.message ?? "";
+      ...
+    }
+  });
+  ```
+
+  复杂类型则稍微有些麻烦，我们需要先声明是Object as () => 来返回类型，从而让typescript获得类型推导。
+
+  ```ts
+  interface Post {
+    message: String;
+  }
+
+  interface Props {
+    post?: Post;
+    list?: Array<Post>;
+  }
+
+  defineComponent({
+    props: {
+      post: {
+        type: Object as () => Post
+      },
+      list: {
+        type: Array as () => Array<Post>
+      }
+    },
+    setup(props: Props) {
+      const innerPost = props.post;
+      const innerList = props.list;
+      ...
+    }
+  });
+  ```
+
 ## 响应式系统 API
 
 ### `reactive`
