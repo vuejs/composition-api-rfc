@@ -907,7 +907,7 @@ function useFeatureX() {
 
 export default {
   setup() {
-    // 可以结构，不会丢失响应性
+    // 可以解构，不会丢失响应性
     const { foo, bar } = useFeatureX()
 
     return {
