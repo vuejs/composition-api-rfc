@@ -637,8 +637,8 @@ The component instance context is also set during the synchronous execution of l
   - `mounted` -> `onMounted`
   - `beforeUpdate` -> `onBeforeUpdate`
   - `updated` -> `onUpdated`
-  - `beforeDestroy` -> `onBeforeUnmount`
-  - `destroyed` -> `onUnmounted`
+  - `beforeDestroy / beforeUnmount` -> `onBeforeUnmount`
+  - `destroyed / unmounted` -> `onUnmounted`
   - `activated` -> `onActivated`
   - `deactivated` -> `onDeactivated`
   - `errorCaptured` -> `onErrorCaptured`

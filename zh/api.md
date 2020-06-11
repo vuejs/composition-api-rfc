@@ -639,8 +639,8 @@ const MyComponent = {
   - `mounted` -> `onMounted`
   - `beforeUpdate` -> `onBeforeUpdate`
   - `updated` -> `onUpdated`
-  - `beforeDestroy` -> `onBeforeUnmount`
-  - `destroyed` -> `onUnmounted`
+  - `beforeDestroy / beforeUnmount` -> `onBeforeUnmount`
+  - `destroyed / unmounted` -> `onUnmounted`
   - `errorCaptured` -> `onErrorCaptured`
 
 - **新增的钩子函数**
