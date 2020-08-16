@@ -884,7 +884,7 @@ stateAsRefs 的类型如下:
 
 // ref 对象 与 原属性的引用是 "链接" 上的
 state.foo++
-console.log(stateAsRefs.foo) // 2
+console.log(stateAsRefs.foo.value) // 2
 
 stateAsRefs.foo.value++
 console.log(state.foo) // 3
