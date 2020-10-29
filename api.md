@@ -122,7 +122,7 @@ The `setup` function is a new component option. It serves as the entry point for
   }
   ```
 
-  `attrs` and `slots` are proxies to the corresponding values on the internal component instance. This ensures they always expose the latest values even after updates so that we can destructure them without worrying accessing a stale reference:
+  `attrs` and `slots` are proxies to the corresponding values on the internal component instance. This ensures they always expose the latest values even after updates so that we can destructure them without worrying about accessing a stale reference:
 
   ```js
   const MyComponent = {
@@ -143,7 +143,7 @@ The `setup` function is a new component option. It serves as the entry point for
 
 - **Usage of `this`**
 
-  **`this` is not available inside `setup()`.** Since `setup()` is called before 2.x options are resolved, `this` inside `setup()` (if made available) will behave quite differently from `this` in other 2.x options. Making it available will likely cause confusions when using `setup()` along other 2.x options. Another reason for avoiding `this` in `setup()` is a very common pitfall for beginners:
+  **`this` is not available inside `setup()`.** Since `setup()` is called before 2.x options are resolved, `this` inside `setup()` (if made available) will behave quite differently from `this` in other 2.x options. Making it available will likely cause confusion when using `setup()` along other 2.x options. Another reason for avoiding `this` in `setup()` is a very common pitfall for beginners:
 
   ```js
   setup() {
@@ -361,7 +361,7 @@ setTimeout(() => {
 
 #### Stopping the Watcher
 
-When `watchEffect` is called during a component's `setup()` function or lifecycle hooks, the watcher is linked to the component's lifecycle, and will be automatically stopped when the component is unmounted.
+When `watchEffect` is called during a component's `setup()` function or lifecycle hooks, the watcher is linked to the component's lifecycle, and will be stopped automatically when the component is unmounted.
 
 In other cases, it returns a stop handle which can be called to explicitly stop the watcher:
 
@@ -407,7 +407,7 @@ An async function implicitly returns a Promise, but the cleanup function needs t
 
 #### Effect Flush Timing
 
-Vue's reactivity system buffers invalidated effects and flush them asynchronously to avoid unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watched effect. When a user effect is queued, it is always invoked after all component update effects:
+Vue's "reactivity system buffers" invalidate effects and flush them asynchronously to avoid an unnecessary duplicate invocation when there are many state mutations happening in the same "tick". Internally, a component's update function is also a watched effect. When a user effect is queued, it is always invoked after all component update effects:
 
 ```html
 <template>
@@ -532,7 +532,7 @@ The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corres
 
 - **Watching a Single Source**
 
-  A watcher data source can either be a getter function that returns a value, or directly a ref:
+  A watcher data source can either be a getter function that returns a value, or a direct ref:
 
   ```js
   // watching a getter
@@ -605,7 +605,7 @@ The `watch` API is the exact equivalent of the 2.x `this.$watch` (and the corres
 
 ## Lifecycle Hooks
 
-Lifecycle hooks can be registered with directly imported `onXXX` functions:
+Lifecycle hooks can be registered explicitly with imported `onXXX` functions:
 
 ```js
 import { onMounted, onUpdated, onUnmounted } from 'vue'
@@ -627,7 +627,7 @@ const MyComponent = {
 
 These lifecycle hook registration functions can only be used synchronously during `setup()`, since they rely on internal global state to locate the current active instance (the component instance whose `setup()` is being called right now). Calling them without a current active instance will result in an error.
 
-The component instance context is also set during the synchronous execution of lifecycle hooks, so watchers and computed properties created inside synchronously inside lifecycle hooks are also automatically tore down when the component unmounts.
+The component instance context is also set during the synchronous execution of lifecycle hooks, so watchers and computed properties created synchronously inside lifecycle hooks are also automatically torn down when the component unmounts.
 
 - **Mapping between 2.x Lifecycle Options and Composition API**
 
@@ -719,7 +719,7 @@ const Descendent = {
   function inject<T>(key: InjectionKey<T> | string, defaultValue: T): T
   ```
 
-  Vue provides a `InjectionKey` interface which is a generic type that extends `Symbol`. It can be used to sync the type of the injected value between the provider and the consumer:
+  Vue provides the `InjectionKey` interface which is a generic type that extends `Symbol`. It can be used to sync the type of the injected value between the provider and the consumer:
 
   ```ts
   import { InjectionKey, provide, inject } from 'vue'
@@ -768,7 +768,7 @@ When using the Composition API, the concept of _reactive refs_ and _template ref
 
 Here we are exposing `root` on the render context and binding it to the div as its ref via `ref="root"`. In the Virtual DOM patching algorithm, if a VNode's `ref` key corresponds to a ref on the render context, then the VNode's corresponding element or component instance will be assigned to the value of that ref. This is performed during the Virtual DOM mount / patch process, so template refs will only get assigned values after the initial render.
 
-Refs used as templates refs behave just like any other refs: they are reactive and can be passed into (or returned from) composition functions.
+Refs used as template refs behave just like any other refs: they are reactive and can be passed into (or returned from) composition functions.
 
 - **Usage with Render Function / JSX**
 
@@ -835,7 +835,7 @@ function useFoo(x: number | Ref<number>) {
 
 ### `toRef`
 
-`toRef` can be used to create a ref for a property on a source reactive object. The ref can then be passed around and retains the reactive connection to its source property.
+`toRef` can be used to create a ref for a property on a reactive source object. The ref can then be passed around and retains the reactive connection to its source property.
 
 ```js
 const state = reactive({
