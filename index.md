@@ -730,7 +730,7 @@ To sum up, there are two viable styles:
 
 2. Use `reactive` whenever you can, and remember to use `toRefs` when returning reactive objects from composition functions. This reduces the mental overhead of refs but does not eliminate the need to be familiar with the concept.
 
-At this stage, we believe it is too early to mandate a best practice on `ref` vs. `reactive`. We recommend you to go with the style that aligns with your mental model better from the two options above. We will be collecting real world user feedback and eventually provide more definitive guidance on this topic.
+At this stage, we believe it is too early to mandate a best practice on `ref` vs. `reactive`. We recommend you go with the style that aligns with your mental model better from the two options above. We will be collecting real world user feedback and eventually provide more definitive guidance on this topic.
 
 ### Verbosity of the Return Statement
 
