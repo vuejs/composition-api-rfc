@@ -1,4 +1,2 @@
-/             https://v3.vuejs.org/guide/composition-api-introduction.html
-/api.html     https://v3.vuejs.org/guide/composition-api-introduction.html
-/zh/          https://v3.cn.vuejs.org/guide/composition-api-introduction.html
-/zh/api.html  https://v3.cn.vuejs.org/guide/composition-api-introduction.html
+/zh/*  https://v3.cn.vuejs.org/guide/composition-api-introduction.html
+/*     https://v3.vuejs.org/guide/composition-api-introduction.html
